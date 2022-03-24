@@ -121,7 +121,7 @@ class PowerBIAPIClient:
             return response.json()
 
         logging.info(f"Trying to create workspace with name: {workspace_name}...")
-        url = self.base_url + "groups?workspaceV2=true"
+        url = self.base_url + "groups?workspaceV2=True"
         
         response = requests.post(url, data={"name": workspace_name}, headers=self.headers)
 
@@ -200,6 +200,43 @@ class PowerBIAPIClient:
             return response
         else:
             logging.error(f"Failed to assign workspace with ID {workspace_id} to pipeline {pipeline_name}.")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
+    def deploy_all_pipeline_stage(self, pipeline_name: str, workspace_name: str, capacity_id: str, source_stage: str) -> None:
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
+        url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
+        
+        source_stage_lower = source_stage.lower()
+        if source_stage_lower == 'dev': stage_order = 0
+        elif source_stage_lower == 'test': stage_order = 1
+        
+        body = {
+            "sourceStageOrder": {stage_order},
+            "newWorkspace": {
+                "capacityId": {capacity_id},
+                "name": {workspace_name}
+            },
+            "options": {
+                "allowCreateArtifact": True,
+                "allowOverwriteArtifact": True,
+                "allowOverwriteTargetArtifactLabel": True,
+                "allowPurgeData": True,
+                "allowSkipTilesWithMissingPrerequisites": True,
+                "allowTakeOver": True
+            }
+        }
+                
+        response = requests.post(url, data=body, headers=self.headers)
+        
+        if stage_order == 0: target_stage = 'Test'
+        elif stage_order == 1: target_stage = 'Prod'
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+            return response
+        else:
+            logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
             self.force_raise_http_error(response)
     
     @check_bearer_token
@@ -428,7 +465,7 @@ class PowerBIAPIClient:
             self.base_url
             + f"groups/{workspace_id}/imports?datasetDisplayName={display_name}&nameConflict="
             + f"{name_conflict}"
-            + ("&skipReport=true" if skip_report else "")
+            + ("&skipReport=True" if skip_report else "")
         )
         headers = {"Content-Type": "multipart/form-data", **self.get_authz_header()}
 
