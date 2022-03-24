@@ -185,6 +185,24 @@ class PowerBIAPIClient:
             self.force_raise_http_error(response)
     
     @check_bearer_token
+    def assign_pipeline_workspace(self, pipeline_name: str, workspace_name: str, stage_order: int) -> None:
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
+        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
+        url = self.base_url + f"pipelines/{pipeline_id}/stages/{stage_order}/assignWorkspace"
+        body = {
+            "workspaceId": {workspace_id}
+        }
+                
+        response = requests.post(url, data=body, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully assigned workspace with ID {workspace_id} to pipeline {pipeline_name}.")
+            return response
+        else:
+            logging.error(f"Failed to assign workspace with ID {workspace_id} to pipeline {pipeline_name}.")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
     def add_user_to_workspace(self, workspace_name: str, user: Dict) -> None:
         workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
         url = self.base_url + f"groups/{workspace_id}/users"
