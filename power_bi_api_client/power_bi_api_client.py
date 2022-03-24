@@ -227,11 +227,11 @@ class PowerBIAPIClient:
                 self.workspace_exists = True
                 break
         
-        if self.workspace_exists:
+        if self.workspace_exists == True:
             if stage_order == 0: stage_order = 1
             elif stage_order == 1: stage_order = 2
             self.assign_pipeline_workspace(pipeline_name, workspace_name, stage_order)
-        else:
+        elif self.workspace_exists == False:
             pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
             url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
          
