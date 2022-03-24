@@ -134,7 +134,7 @@ class PowerBIAPIClient:
             self.force_raise_http_error(response)
 
     @check_bearer_token
-    def add_user_to_workspace(self, workspace_name: str, capacity: Dict) -> None:
+    def set_workspace_capacity(self, workspace_name: str, capacity: Dict) -> None:
         workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
         url = self.base_url + f"groups/{workspace_id}/AssignToCapacity"
         
