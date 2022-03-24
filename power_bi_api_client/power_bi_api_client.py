@@ -217,7 +217,7 @@ class PowerBIAPIClient:
             self.force_raise_http_error(response)
         
         for object in self._groups:
-            if object['displayName'] == f'{workspace_name}':
+            if object['name'] == f'{workspace_name}':
                 logging.info(f"Successfully retrieved workspace with name {workspace_name}.")
                 logging.warning(f"Workspace {workspace_name} already exists, continuing to pipeline promotion.")
                 self.workspace_exists = True
