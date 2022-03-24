@@ -21,7 +21,7 @@ import_pbix_file = pbi_client.import_file_into_workspace('Testing Environment [D
 time.sleep(5)
 create_pipeline = pbi_client.create_pipeline('Testing Environment')
 time.sleep(5)
-assign_pipeline_workspace = pbi_client.assign_pipeline_workspace('Testing Environment ', 'Testing Environment [Dev]', 0)
+assign_pipeline_workspace = pbi_client.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 0)
 time.sleep(5)
 add_user_workspace = pbi_client.add_user_to_workspace('Testing Environment [Dev]', {"identifier": "admin@M365x51939963.onmicrosoft.com", "groupUserAccessRight": "Admin", "principalType": "User"})
 time.sleep(5)
