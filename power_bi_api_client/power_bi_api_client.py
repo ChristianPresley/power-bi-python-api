@@ -207,6 +207,10 @@ class PowerBIAPIClient:
         url = self.base_url + "groups"
         self.workspace_exists = False
         
+        source_stage_lower = source_stage.lower()
+        if source_stage_lower == 'dev': stage_order = 0
+        elif source_stage_lower == 'test': stage_order = 1
+        
         response = requests.get(url, headers=self.headers)
         
         if response.status_code == HTTP_OK_CODE:
@@ -223,46 +227,41 @@ class PowerBIAPIClient:
                 self.workspace_exists = True
                 break
         
-        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
-        url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
-        
-        source_stage_lower = source_stage.lower()
-        if source_stage_lower == 'dev': stage_order = 0
-        elif source_stage_lower == 'test': stage_order = 1
-        
-        body = {
-            "sourceStageOrder": {stage_order},
-            "options": {
-                "allowCreateArtifact": True,
-                "allowOverwriteArtifact": True,
-                "allowOverwriteTargetArtifactLabel": True,
-                "allowPurgeData": True,
-                "allowSkipTilesWithMissingPrerequisites": True,
-                "allowTakeOver": True
-            }
-        }
-        
-        if self.workspace_exists == False:
-            body.update({
+        if self.workspace_exists:
+            if stage_order == 0: stage_order = 1
+            elif stage_order == 1: stage_order = 2
+            self.assign_pipeline_workspace(pipeline_name, workspace_name, stage_order)
+        else:
+            pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
+            url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
+         
+            body = {
+                "sourceStageOrder": {stage_order},
+                "options": {
+                    "allowCreateArtifact": True,
+                    "allowOverwriteArtifact": True,
+                    "allowOverwriteTargetArtifactLabel": True,
+                    "allowPurgeData": True,
+                    "allowSkipTilesWithMissingPrerequisites": True,
+                    "allowTakeOver": True
+                },
                 "newWorkspace": 
                     {
                         "capacityId": {capacity_id},
                         "name": {workspace_name}
                     }
-                }
-            )
-                
-        response = requests.post(url, data=body, headers=self.headers)
+            }
+            response = requests.post(url, data=body, headers=self.headers)
         
-        if stage_order == 0: target_stage = 'Test'
-        elif stage_order == 1: target_stage = 'Prod'
+            if stage_order == 0: target_stage = 'Test'
+            elif stage_order == 1: target_stage = 'Prod'
 
-        if response.status_code == HTTP_OK_CODE:
-            logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
-            return response
-        else:
-            logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
-            self.force_raise_http_error(response)
+            if response.status_code == HTTP_OK_CODE:
+                logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+                return response
+            else:
+                logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+                self.force_raise_http_error(response)
     
     @check_bearer_token
     def add_user_to_workspace(self, workspace_name: str, user: Dict) -> None:
