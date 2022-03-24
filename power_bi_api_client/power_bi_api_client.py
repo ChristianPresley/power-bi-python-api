@@ -113,7 +113,7 @@ class PowerBIAPIClient:
         response = requests.get(url, headers=self.headers)
 
         if response.status_code != HTTP_OK_CODE:
-            logging.error(f"The workspace {workspace_name} already exists.")
+            logging.error(f"Failed to get workspaces.")
             self.force_raise_http_error(response)
 
         if response.json()["@odata.count"] > 0:
@@ -204,28 +204,22 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def deploy_all_pipeline_stage(self, pipeline_name: str, workspace_name: str, capacity_id: str, source_stage: str) -> None:
-        url = self.base_url + "groups"
+        url = self.base_url + "groups?$filter=" + parse.quote(f"name eq '{workspace_name}'")
+        
+        response = requests.get(url, headers=self.headers)
+
+        if response.status_code != HTTP_OK_CODE:
+            logging.error(f"Failed to get workspaces.")
+            self.force_raise_http_error(response)
+
         self.workspace_exists = False
+        if response.json()["@odata.count"] > 0:
+            logging.info(f"The workspace {workspace_name} already exists, no changes made.")
+            self.workspace_exists = True
         
         source_stage_lower = source_stage.lower()
         if source_stage_lower == 'dev': stage_order = 0
         elif source_stage_lower == 'test': stage_order = 1
-        
-        response = requests.get(url, headers=self.headers)
-        
-        if response.status_code == HTTP_OK_CODE:
-            logging.info("Successfully retrieved workspaces.")
-            self._groups = response.json()["value"]
-        else:
-            logging.error(f"Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
-        
-        for object in self._groups:
-            if object['name'] == f'{workspace_name}':
-                logging.info(f"Successfully retrieved workspace with name {workspace_name}.")
-                logging.warning(f"Workspace {workspace_name} already exists, continuing to pipeline promotion.")
-                self.workspace_exists = True
-                break
         
         if self.workspace_exists == True:
             if stage_order == 0: stage_order = 1
