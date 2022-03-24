@@ -134,6 +134,20 @@ class PowerBIAPIClient:
             self.force_raise_http_error(response)
 
     @check_bearer_token
+    def add_user_to_workspace(self, workspace_name: str, capacity: Dict) -> None:
+        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
+        url = self.base_url + f"groups/{workspace_id}/AssignToCapacity"
+        
+        response = requests.post(url, data=capacity, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully changed capacity of workspace {workspace_name} to {capacity}.")
+            return response
+        else:
+            logging.error(f"Failed to change capacity of workspace {workspace_name} to {capacity}.")
+            self.force_raise_http_error(response)
+
+    @check_bearer_token
     def create_pipeline(self, workspace_name: str) -> None:
         url = self.base_url + "pipelines"
         self.pipeline_exists = False

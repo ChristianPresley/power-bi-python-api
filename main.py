@@ -13,6 +13,7 @@ pbi_client = PowerBIAPIClient(
 logging.basicConfig(level=logging.INFO)
 
 create_workspace = pbi_client.create_workspace('Testing Environment')
+set_workspace_capacity = pbi_client.set_workspace_capacity('Testing Environment', {"capacityId": "4846741C-9AC0-456B-A0F2-6BA8C4D1D720"})
 import_pbix_file = pbi_client.import_file_into_workspace('Testing Environment', False, 'SharePointListDemo.pbix', 'SharePointListDemo')
 create_pipeline = pbi_client.create_pipeline('Testing Environment')
 add_user_workspace = pbi_client.add_user_to_workspace('Testing Environment', {"identifier": "admin@M365x51939963.onmicrosoft.com", "groupUserAccessRight": "Admin", "principalType": "User"})
