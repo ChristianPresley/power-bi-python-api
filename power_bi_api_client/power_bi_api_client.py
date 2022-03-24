@@ -204,6 +204,25 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def deploy_all_pipeline_stage(self, pipeline_name: str, workspace_name: str, capacity_id: str, source_stage: str) -> None:
+        url = self.base_url + "groups"
+        self.workspace_exists = False
+        
+        response = requests.get(url, headers=self.headers)
+        
+        if response.status_code == HTTP_OK_CODE:
+            logging.info("Successfully retrieved workspaces.")
+            self._groups = response.json()["value"]
+        else:
+            logging.error(f"Failed to retrieve workspaces.")
+            self.force_raise_http_error(response)
+        
+        for object in self._groups:
+            if object['displayName'] == f'{workspace_name}':
+                logging.info(f"Successfully retrieved workspace with name {workspace_name}.")
+                logging.warning(f"Workspace {workspace_name} already exists, continuing to pipeline promotion.")
+                self.workspace_exists = True
+                break
+        
         pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
         url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
         
@@ -213,10 +232,6 @@ class PowerBIAPIClient:
         
         body = {
             "sourceStageOrder": {stage_order},
-            "newWorkspace": {
-                "capacityId": {capacity_id},
-                "name": {workspace_name}
-            },
             "options": {
                 "allowCreateArtifact": True,
                 "allowOverwriteArtifact": True,
@@ -226,6 +241,16 @@ class PowerBIAPIClient:
                 "allowTakeOver": True
             }
         }
+        
+        if self.workspace_exists == False:
+            body.update({
+                "newWorkspace": 
+                    {
+                        "capacityId": {capacity_id},
+                        "name": {workspace_name}
+                    }
+                }
+            )
                 
         response = requests.post(url, data=body, headers=self.headers)
         
