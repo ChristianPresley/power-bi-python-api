@@ -72,7 +72,7 @@ class PowerBIAPIClient:
 
         if response.status_code == HTTP_OK_CODE:
             logging.info("Successfully retrieved workspace.")
-            return response.json()["value"]
+            return response.json()["@odata.count"]
         else:
             logging.error("Failed to retrieve workspace.")
             self.force_raise_http_error(response)
