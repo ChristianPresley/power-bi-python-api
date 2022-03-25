@@ -30,7 +30,7 @@ if check_workspace_dev == 0:
 else:
     logging.info('Dev workspace already exists.')
 
-check_workspace_test = pbi_client.get_workspace('Testing Environment [Dev]')
+check_workspace_test = pbi_client.get_workspace('Testing Environment [Test]')
 
 if check_workspace_test == 0:
     create_workspace_test = pbi_client.create_workspace('Testing Environment [Test]')
@@ -44,7 +44,7 @@ if check_workspace_test == 0:
 else:
     logging.info('Test workspace already exists.')
 
-check_workspace_prod = pbi_client.get_workspace('Testing Environment [Dev]')
+check_workspace_prod = pbi_client.get_workspace('Testing Environment [Prod]')
 
 if check_workspace_prod == 0:
     create_workspace_prod = pbi_client.create_workspace('Testing Environment [Prod]')
