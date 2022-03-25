@@ -200,7 +200,7 @@ class PowerBIAPIClient:
         logging.info(f"Attempting to create pipeline with name: {workspace_name}...")
         url = self.base_url + "pipelines"
         
-        response = requests.post(url, payload={"displayName": workspace_name}, headers=self.headers)
+        response = requests.post(url, data={"displayName": workspace_name}, headers=self.headers)
 
         if response.status_code == HTTP_CREATED_CODE:
             logging.info(f"Successfully created pipeline {workspace_name}.")
