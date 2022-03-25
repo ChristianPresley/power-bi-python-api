@@ -13,6 +13,3 @@ pbi_client = PowerBIAPIClient(
 )
 
 logging.basicConfig(level=logging.INFO)
-
-
-deploy_pipeline_prod = pbi_client.deploy_all_pipeline_stage('Testing Environment', "Test")

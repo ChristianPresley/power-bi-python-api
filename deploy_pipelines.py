@@ -12,7 +12,7 @@ pbi_client = PowerBIAPIClient(
 
 logging.basicConfig(level=logging.INFO)
 
-deploy_pipeline_test = pbi_client.deploy_all_pipeline_stage('Testing Environment', 'Testing Environment [Test]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720', "Dev")
+deploy_pipeline_test = pbi_client.deploy_all_pipeline_stage('Testing Environment', "Dev")
 time.sleep(5)
-deploy_pipeline_prod = pbi_client.deploy_all_pipeline_stage('Testing Environment', 'Testing Environment [Prod]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720', "Test")
+deploy_pipeline_prod = pbi_client.deploy_all_pipeline_stage('Testing Environment', "Test")
 time.sleep(5)

@@ -232,31 +232,33 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def deploy_all_pipeline_stage(self, pipeline_name: str, source_stage: str) -> None:
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
+        request_url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
+        request_headers = self.headers
+        request_headers['Content-Type'] = 'application/json'
+        
         source_stage_lower = source_stage.lower()
         if source_stage_lower == 'dev': stage_order = 0
         elif source_stage_lower == 'test': stage_order = 1
         
-        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
-        url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
+        if stage_order == 0: target_stage = 'Test'
+        elif stage_order == 1: target_stage = 'Prod'
         
-        body = {
-            "sourceStageOrder": "1",
-            "options": {
-                "allowCreateArtifact": True,
-                "allowOverwriteArtifact": True,
-                "allowOverwriteTargetArtifactLabel": True,
-                "allowPurgeData": True,
-                "allowSkipTilesWithMissingPrerequisites": True,
-                "allowTakeOver": True
+        request_payload = {
+            'sourceStageOrder': stage_order,
+            'options': {
+                'allowCreateArtifact': True,
+                'allowOverwriteArtifact': True,
+                'allowOverwriteTargetArtifactLabel': True,
+                'allowPurgeData': True,
+                'allowSkipTilesWithMissingPrerequisites': True,
+                'allowTakeOver': True
             }
         }
         
-        response = requests.post(url, data=body, headers=self.headers)
+        response = requests.post(request_url, json = request_payload, headers = request_headers)
         
-        if stage_order == 0: target_stage = 'Test'
-        elif stage_order == 1: target_stage = 'Prod'
-
-        if response.status_code == HTTP_CREATED_CODE:
+        if response.status_code == HTTP_ACCEPTED_CODE:
             logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
             return response
         else:
