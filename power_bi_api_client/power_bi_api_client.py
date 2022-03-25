@@ -1,6 +1,8 @@
+from unittest import case
 import requests
 import datetime
 import logging
+import json
 import os
 
 from typing import Callable, Dict, List, NoReturn, Union
@@ -262,9 +264,51 @@ class PowerBIAPIClient:
             self.force_raise_http_error(response)
     
     @check_bearer_token
+    def get_workspace_users(self, workspace_name: str) -> None:
+        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
+        url = self.base_url + f"groups/{workspace_id}/users"
+        
+        response = requests.get(url, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully added user {user} to workspace {workspace_name}.")
+            return response
+        else:
+            logging.error(f"Failed to add user {user} to workspace {workspace_name}.")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
+    def get_workspace_users_by_id(self, workspace_id: str) -> None:
+        url = self.base_url + f"groups/{workspace_id}/users"
+        
+        response = requests.get(url, headers=self.headers)
+        results = response.json()["value"]
+        output = []
+        
+        for i, val in enumerate(results):
+            temp = json.dumps(val)
+            temp1 = json.loads(temp)
+            output.append(temp1["identifier"])
+        
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully retrieved users for workspace {workspace_id}.")
+            return output
+        else:
+            logging.error(f"Failed to retrieve users for workspace {workspace_id}.")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
     def add_user_to_workspace(self, workspace_name: str, user: Dict) -> None:
         workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
         url = self.base_url + f"groups/{workspace_id}/users"
+        
+        users = self.get_workspace_users_by_id(workspace_id)
+        
+        if "admin@M365x51939963.onmicrosoft.com" in users:
+            logging.warning(f"User already exists in {workspace_name}")
+            return
+        else:
+            logging.info(f"User does not already exist in {workspace_name}.")
         
         response = requests.post(url, data=user, headers=self.headers)
 
@@ -273,6 +317,19 @@ class PowerBIAPIClient:
             return response
         else:
             logging.error(f"Failed to add user {user} to workspace {workspace_name}.")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
+    def add_user_to_workspace_by_id(self, workspace_id: str, user: Dict) -> None:
+        url = self.base_url + f"groups/{workspace_id}/users"
+        
+        response = requests.post(url, data=user, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully added user {user} to workspace {workspace_id}.")
+            return response
+        else:
+            logging.error(f"Failed to add user {user} to workspace {workspace_id}.")
             self.force_raise_http_error(response)
     
     @check_bearer_token
