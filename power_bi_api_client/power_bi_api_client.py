@@ -231,7 +231,7 @@ class PowerBIAPIClient:
             self.force_raise_http_error(response)
     
     @check_bearer_token
-    def deploy_all_pipeline_stage(self, pipeline_name: str, workspace_name: str, capacity_id: str, source_stage: str) -> None:
+    def deploy_all_pipeline_stage(self, pipeline_name: str, source_stage: str) -> None:
         source_stage_lower = source_stage.lower()
         if source_stage_lower == 'dev': stage_order = 0
         elif source_stage_lower == 'test': stage_order = 1
@@ -240,7 +240,7 @@ class PowerBIAPIClient:
         url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
         
         body = {
-            "sourceStageOrder": {stage_order},
+            "sourceStageOrder": "1",
             "options": {
                 "allowCreateArtifact": True,
                 "allowOverwriteArtifact": True,
@@ -256,7 +256,7 @@ class PowerBIAPIClient:
         if stage_order == 0: target_stage = 'Test'
         elif stage_order == 1: target_stage = 'Prod'
 
-        if response.status_code == HTTP_OK_CODE:
+        if response.status_code == HTTP_CREATED_CODE:
             logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
             return response
         else:
