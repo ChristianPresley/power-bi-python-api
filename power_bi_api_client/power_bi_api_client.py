@@ -95,6 +95,19 @@ class PowerBIAPIClient:
         return self._pipelines or self.get_pipelines()
     
     @check_bearer_token
+    def get_pipeline(self, pipeline_id: str) -> List:
+        url = self.base_url + f"pipelines/{pipeline_id}"
+        
+        response = requests.get(url, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully retrieved pipeline {pipeline_id}")
+            return response.json()
+        else:
+            logging.error(f"Failed to retrieve pipeline {pipeline_id}")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
     def get_pipelines(self) -> List:
         url = self.base_url + "pipelines"
         
@@ -276,6 +289,19 @@ class PowerBIAPIClient:
             logging.error(f"Failed to add user {user} to pipeline {pipeline_name}.")
             self.force_raise_http_error(response)
 
+    @check_bearer_token
+    def add_user_to_pipeline_by_id(self, pipeline_id: str, user: Dict) -> None:
+        url = self.base_url + f"pipelines/{pipeline_id}/users"
+        
+        response = requests.post(url, data=user, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully added user {user} to pipeline {pipeline_id}.")
+            return response
+        else:
+            logging.error(f"Failed to add user {user} to pipeline {pipeline_id}.")
+            self.force_raise_http_error(response)
+    
     @check_bearer_token
     def get_users_from_workspace(self, workspace_name: str) -> List:
         workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
