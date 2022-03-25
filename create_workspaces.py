@@ -39,8 +39,8 @@ if check_workspace_test == 0:
     time.sleep(5)
     add_user_workspace_test = pbi_client.add_user_to_workspace('Testing Environment [Test]', {"identifier": "admin@M365x51939963.onmicrosoft.com", "groupUserAccessRight": "Admin", "principalType": "User"})
     time.sleep(5)
-    import_pbix_file_test = pbi_client.import_file_into_workspace('Testing Environment [Test]', False, 'SharePointListDemo.pbix', 'SharePointListDemo')
-    time.sleep(5)
+    # import_pbix_file_test = pbi_client.import_file_into_workspace('Testing Environment [Test]', False, 'SharePointListDemo.pbix', 'SharePointListDemo')
+    # time.sleep(5)
 else:
     logging.info('Test workspace already exists.')
 
@@ -53,7 +53,7 @@ if check_workspace_prod == 0:
     time.sleep(5)
     add_user_workspace_prod = pbi_client.add_user_to_workspace('Testing Environment [Prod]', {"identifier": "admin@M365x51939963.onmicrosoft.com", "groupUserAccessRight": "Admin", "principalType": "User"})
     time.sleep(5)
-    import_pbix_file_prod = pbi_client.import_file_into_workspace('Testing Environment [Prod]', False, 'SharePointListDemo.pbix', 'SharePointListDemo')
-    time.sleep(5)
+    # import_pbix_file_prod = pbi_client.import_file_into_workspace('Testing Environment [Prod]', False, 'SharePointListDemo.pbix', 'SharePointListDemo')
+    # time.sleep(5)
 else:
     logging.info('Prod workspace already exists.')
