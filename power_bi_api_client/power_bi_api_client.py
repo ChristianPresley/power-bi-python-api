@@ -65,6 +65,19 @@ class PowerBIAPIClient:
         return self._workspaces or self.get_workspaces()
 
     @check_bearer_token
+    def get_workspace(self, workspace_name: str) -> List:
+        url = self.base_url + "groups?$filter=" + parse.quote(f"name eq '{workspace_name}'")
+        
+        response = requests.get(url, headers=self.headers)
+
+        if response.status_code == HTTP_OK_CODE:
+            logging.info("Successfully retrieved workspace.")
+            return response.json()["value"]
+        else:
+            logging.error("Failed to retrieve workspace.")
+            self.force_raise_http_error(response)
+    
+    @check_bearer_token
     def get_workspaces(self) -> List:
         url = self.base_url + "groups"
         
@@ -204,58 +217,36 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def deploy_all_pipeline_stage(self, pipeline_name: str, workspace_name: str, capacity_id: str, source_stage: str) -> None:
-        url = self.base_url + "groups?$filter=" + parse.quote(f"name eq '{workspace_name}'")
-        
-        response = requests.get(url, headers=self.headers)
-
-        if response.status_code != HTTP_OK_CODE:
-            logging.error(f"Failed to get workspaces.")
-            self.force_raise_http_error(response)
-
-        self.workspace_exists = False
-        if response.json()["@odata.count"] > 0:
-            logging.info(f"The workspace {workspace_name} already exists, no changes made.")
-            self.workspace_exists = True
-        
         source_stage_lower = source_stage.lower()
         if source_stage_lower == 'dev': stage_order = 0
         elif source_stage_lower == 'test': stage_order = 1
         
-        if self.workspace_exists == True:
-            if stage_order == 0: stage_order = 1
-            elif stage_order == 1: stage_order = 2
-            self.assign_pipeline_workspace(pipeline_name, workspace_name, stage_order)
-        elif self.workspace_exists == False:
-            pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
-            url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
-         
-            body = {
-                "sourceStageOrder": {stage_order},
-                "options": {
-                    "allowCreateArtifact": True,
-                    "allowOverwriteArtifact": True,
-                    "allowOverwriteTargetArtifactLabel": True,
-                    "allowPurgeData": True,
-                    "allowSkipTilesWithMissingPrerequisites": True,
-                    "allowTakeOver": True
-                },
-                "newWorkspace": 
-                    {
-                        "capacityId": {capacity_id},
-                        "name": {workspace_name}
-                    }
-            }
-            response = requests.post(url, data=body, headers=self.headers)
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
+        url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
         
-            if stage_order == 0: target_stage = 'Test'
-            elif stage_order == 1: target_stage = 'Prod'
+        body = {
+            "sourceStageOrder": {stage_order},
+            "options": {
+                "allowCreateArtifact": True,
+                "allowOverwriteArtifact": True,
+                "allowOverwriteTargetArtifactLabel": True,
+                "allowPurgeData": True,
+                "allowSkipTilesWithMissingPrerequisites": True,
+                "allowTakeOver": True
+            }
+        }
+        
+        response = requests.post(url, data=body, headers=self.headers)
+        
+        if stage_order == 0: target_stage = 'Test'
+        elif stage_order == 1: target_stage = 'Prod'
 
-            if response.status_code == HTTP_OK_CODE:
-                logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
-                return response
-            else:
-                logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
-                self.force_raise_http_error(response)
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully promoted stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+            return response
+        else:
+            logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+            self.force_raise_http_error(response)
     
     @check_bearer_token
     def add_user_to_workspace(self, workspace_name: str, user: Dict) -> None:
