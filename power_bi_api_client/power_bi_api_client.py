@@ -122,6 +122,36 @@ class PowerBIAPIClient:
             logging.error("Failed to retrieve pipelines.")
             self.force_raise_http_error(response)
 
+    @check_bearer_token
+    def get_pipeline_stage_assignment(self, pipeline_name: str, workspace_id: str, stage_order: int) -> List:
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing = True)
+        url = self.base_url + "pipelines/" + pipeline_id + "/stages"
+                
+        response = requests.get(url, headers=self.headers)
+        response_json = response.json()["value"]
+        
+        for object in response_json:
+            if object["order"] == stage_order:
+                if "workspaceId" in object:
+                    assignment_workspace_id = object["workspaceId"]
+                    
+                    if assignment_workspace_id == workspace_id:
+                        logging.info(f"Pipeline stage assignment for {pipeline_name} already exists.")
+                        output = True
+                    elif assignment_workspace_id != workspace_id:
+                        logging.warning(f"Pipeline stage assignment for {pipeline_name} already exists, but with incorrect workspace id {assignment_workspace_id}.")
+                        output = assignment_workspace_id
+                elif "workspaceId" not in object:
+                    logging.info(f"Pipeline stage assignment for {pipeline_name} does not exist.")
+                    output = False
+                    
+        if response.status_code == HTTP_OK_CODE:
+            logging.info(f"Successfully retrieved pipeline stages for pipeline {pipeline_name}.")
+            return output
+        else:
+            logging.error(f"Failed to retrieve pipeline stages for pipeline {pipeline_name}.")
+            self.force_raise_http_error(response)
+    
     @staticmethod
     def find_entity_id_by_name(entity_list: List, name: str, entity_type: str, raise_if_missing: bool = False) -> str:
         for item in entity_list:
@@ -214,14 +244,26 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def assign_pipeline_workspace(self, pipeline_name: str, workspace_name: str, stage_order: int) -> None:
-        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
-        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing = True)
+        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing = True)
+        check_stage_assignment = self.get_pipeline_stage_assignment(pipeline_name, workspace_id, stage_order)
+        
+        if check_stage_assignment == False:
+            logging.info(f"Pipeline stage for {pipeline_name} is not assigned a workspace.")
+        elif check_stage_assignment == True:
+            logging.info(f"Pipeline stage for {pipeline_name} is already assigned a workspace.")
+            return
+        else:
+            logging.warning(f"Pipeline already exists but with incorrect workspace id {check_stage_assignment}")
+            return
+        
         url = self.base_url + f"pipelines/{pipeline_id}/stages/{stage_order}/assignWorkspace"
-        body = {
-            "workspaceId": {workspace_id}
+            
+        request_payload = {
+            'workspaceId': workspace_id
         }
                 
-        response = requests.post(url, data=body, headers=self.headers)
+        response = requests.post(url, data = request_payload, headers = self.headers)
 
         if response.status_code == HTTP_OK_CODE:
             logging.info(f"Successfully assigned workspace with ID {workspace_id} to pipeline {pipeline_name}.")
@@ -232,7 +274,8 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def deploy_all_pipeline_stage(self, pipeline_name: str, source_stage: str) -> None:
-        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing=True)
+        pipeline_id = self.find_entity_id_by_name(self.pipelines, pipeline_name, "pipeline", raise_if_missing = True)
+        
         request_url = self.base_url + f"pipelines/{pipeline_id}/deployAll"
         request_headers = self.headers
         request_headers['Content-Type'] = 'application/json'
@@ -267,16 +310,16 @@ class PowerBIAPIClient:
     
     @check_bearer_token
     def get_workspace_users(self, workspace_name: str) -> None:
-        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
-        url = self.base_url + f"groups/{workspace_id}/users"
+        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing = True)
+        request_url = self.base_url + f"groups/{workspace_id}/users"
         
-        response = requests.get(url, headers=self.headers)
+        response = requests.get(request_url, headers = self.headers)
 
         if response.status_code == HTTP_OK_CODE:
-            logging.info(f"Successfully added user {user} to workspace {workspace_name}.")
+            logging.info(f"Successfully retrieved users of workspace {workspace_name}.")
             return response
         else:
-            logging.error(f"Failed to add user {user} to workspace {workspace_name}.")
+            logging.error(f"Failed to retrieve users of workspace {workspace_name}.")
             self.force_raise_http_error(response)
     
     @check_bearer_token
