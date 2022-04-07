@@ -1,41 +1,35 @@
-from unittest import case
 import requests
 import datetime
 import logging
 import json
-import os
 
-from typing import Callable, Dict, List, NoReturn, Union
+from typing import Dict, List, NoReturn, Union
 from urllib import parse
-from power_bi_api_client.utils import partition
 
-HTTP_OK_CODE = 200
-HTTP_CREATED_CODE = 201
-HTTP_ACCEPTED_CODE = 202
+from .check_bearer_token import check_bearer_token
+from ..utils.response_code import http_accepted, http_created, http_ok
 
-def check_bearer_token(fn: Callable) -> Callable:
-    def wrapper(pbi_client, *args, **kwargs):
-        if pbi_client.token is None:
-            logging.info(f"Access token does not exist. Attempting to generate access token.")
-            pbi_client.update_bearer_token()
-        elif pbi_client.token_expiration < datetime.datetime.utcnow():
-            logging.info(f"Access token has expired. Attempting to renew access token.")
-            pbi_client.update_bearer_token()
-        return fn(pbi_client, *args, **kwargs)
-    return wrapper
+HTTP_ACCEPTED_CODE = http_accepted
+HTTP_CREATED_CODE = http_created
+HTTP_OK_CODE = http_ok
 
 class PowerBIAPIClient:
-    def __init__(self, tenant_id: str, client_id: str, client_secret: str):
-        self.tenant_id = tenant_id
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.base_url = "https://api.powerbi.com/v1.0/myorg/"
-        self.url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
-        self.token = None
-        self.token_expiration = None
-        self._workspaces = None
-        self._pipelines = None
-        self.headers = None
+    def __init__(
+            self,
+            tenant_id: str,
+            client_id: str,
+            client_secret: str
+        ):
+            self.tenant_id = tenant_id
+            self.client_id = client_id
+            self.client_secret = client_secret
+            self.base_url = "https://api.powerbi.com/v1.0/myorg/"
+            self.url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
+            self.token = None
+            self.token_expiration = None
+            self._workspaces = None
+            self._pipelines = None
+            self.headers = None
 
     def get_authz_header(self) -> Dict[str, str]:
         return {"Authorization": f"Bearer {self.token}"}
@@ -587,48 +581,6 @@ class PowerBIAPIClient:
         else:
             logging.error(f"Failed to delete report {report_name}.")
             self.force_raise_http_error(response)
-
-    @check_bearer_token
-    def import_file_into_workspace(
-        self, workspace_name: str, skip_report: bool, file_path: str, display_name: str
-    ) -> None:
-        workspace_id = self.find_entity_id_by_name(self.workspaces, workspace_name, "workspace", raise_if_missing=True)
-
-        if not os.path.isfile(file_path):
-            raise FileNotFoundError(2, f"No such file or directory: '{file_path}'. Please check the file exists and try again.")
-
-        name_conflict = "CreateOrOverwrite"
-        url = (
-            self.base_url
-            + f"groups/{workspace_id}/imports?datasetDisplayName={display_name}&nameConflict="
-            + f"{name_conflict}"
-            + ("&skipReport=True" if skip_report else "")
-        )
-        headers = {"Content-Type": "multipart/form-data", **self.get_authz_header()}
-
-        with open(file_path, "rb") as f:
-            response = requests.post(url, headers=headers, files={"filename": f})
-
-        if response.status_code == 202:
-            logging.info(response.json())
-            import_id = response.json()["id"]
-            logging.info(f"Uploading file uploading with id: {import_id}")
-        else:
-            self.force_raise_http_error(response)
-
-        get_import_url = self.base_url + f"groups/{workspace_id}/imports/{import_id}"
-
-        while True:
-            response = requests.get(url=get_import_url, headers=self.headers)
-            if response.status_code != 200:
-                logging.error("Failed to upload file to workspace.")
-                self.force_raise_http_error(response)
-
-            if response.json()["importState"] == "Succeeded":
-                logging.info(f"Successfully imported file to workspace {workspace_name}.")
-                return
-            else:
-                logging.info("Import is currently in progress. . . Please wait.")
 
     @check_bearer_token
     def update_parameters_in_dataset(self, workspace_name: str, dataset_name: str, parameters: list):

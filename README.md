@@ -1,20 +1,8 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
-
+RESTFUL Power PI Python library
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
-
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## User Consent
+```
+$ https://login.microsoftonline.com/a208fa35-44ee-4d61-9589-947f11ff7ed6/oauth2/v2.0/authorize?client_id=4106f761-3b6c-4099-849e-31fbd638ffb0&response_type=code&redirect_uri=https://localhost/redirect&response_mode=query&scope=https://analysis.windows.net/powerbi/api/App.Read.All+https://analysis.windows.net/powerbi/api/Capacity.Read.All+https://analysis.windows.net/powerbi/api/Capacity.ReadWrite.All+https://analysis.windows.net/powerbi/api/Content.Create+https://analysis.windows.net/powerbi/api/Dashboard.Read.All+https://analysis.windows.net/powerbi/api/Dashboard.ReadWrite.All+https://analysis.windows.net/powerbi/api/Dataflow.Read.All+https://analysis.windows.net/powerbi/api/Dataflow.ReadWrite.All+https://analysis.windows.net/powerbi/api/Dataset.Read.All+https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All+https://analysis.windows.net/powerbi/api/Gateway.Read.All+https://analysis.windows.net/powerbi/api/Gateway.ReadWrite.All+https://analysis.windows.net/powerbi/api/Pipeline.Deploy+https://analysis.windows.net/powerbi/api/Pipeline.Read.All+https://analysis.windows.net/powerbi/api/Pipeline.ReadWrite.All+https://analysis.windows.net/powerbi/api/Report.Read.All+https://analysis.windows.net/powerbi/api/Report.ReadWrite.All+https://analysis.windows.net/powerbi/api/StorageAccount.Read.All+https://analysis.windows.net/powerbi/api/StorageAccount.ReadWrite.All+https://analysis.windows.net/powerbi/api/Tenant.Read.All+https://analysis.windows.net/powerbi/api/Tenant.ReadWrite.All+https://analysis.windows.net/powerbi/api/UserState.ReadWrite.All+https://analysis.windows.net/powerbi/api/Workspace.Read.All+https://analysis.windows.net/powerbi/api/Workspace.ReadWrite.All&state=skip_get_token2
+```

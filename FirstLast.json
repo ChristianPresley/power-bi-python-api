@@ -1,0 +1,53 @@
+{
+    "name": "FirstLast",
+    "description": "",
+    "version": "1.0",
+    "culture": "en-US",
+    "modifiedTime": "2022-04-06T22:48:54.3339623+00:00",
+    "pbi:mashup": {
+        "fastCombine": false,
+        "allowNativeQueries": false,
+        "queriesMetadata": {
+            "Table": {
+                "queryId": "40914988-2996-4f3c-b94a-e109b6f2323f",
+                "queryName": "Table",
+                "loadEnabled": true
+            }
+        },
+        "document": "section Section1;\r\nshared Table = let\r\n  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText(\"i45Wcs4oyiwuyUzMU9JRCihKLc5JrVSKjQUA\", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [First = _t, Last = _t])\r\nin\r\n  Source;\r\n"
+    },
+    "annotations": [
+        {
+            "name": "pbi:QueryGroups",
+            "value": "[]"
+        }
+    ],
+    "entities": [
+        {
+            "$type": "LocalEntity",
+            "name": "Table",
+            "description": "",
+            "pbi:refreshPolicy": {
+                "$type": "FullRefreshPolicy",
+                "location": "Table.csv"
+            },
+            "attributes": [
+                {
+                    "name": "First",
+                    "dataType": "string"
+                },
+                {
+                    "name": "Last",
+                    "dataType": "string"
+                }
+            ],
+            "partitions": [
+                {
+                    "name": "FullRefreshPolicyPartition",
+                    "refreshTime": "2022-04-06T22:49:02.7975441+00:00",
+                    "location": "https://wabieus2bpcdsa.blob.core.windows.net:443/bf50abcf-cba0-4892-ab8a-8a0471a42b32/Table.csv?snapshot=2022-04-06T22%3A49%3A02.7817747Z"
+                }
+            ]
+        }
+    ]
+}
