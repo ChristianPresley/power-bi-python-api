@@ -2,7 +2,7 @@
 
 import logging
 import datetime
-from tabnanny import check
+import json
 import requests
 
 from typing import List
@@ -49,7 +49,7 @@ class Dataflows:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
-            self._dataflow_json = response.json()
+            self._dataflow_json = json.dumps(response.json(), indent=10)
             return self._dataflow_json
         else:
             logging.error("Failed to retrieve pipelines.")

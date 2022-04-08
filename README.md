@@ -1,5 +1,5 @@
 # Introduction 
-RESTFUL Power PI Python library
+RESTFUL Power BI Python library
 # Getting Started
 
 ## User Consent

@@ -105,6 +105,34 @@ class Pipelines:
             logging.error(f"Failed to retrieve pipeline stages for pipeline {pipeline_name}.")
             self.force_raise_http_error(response)
     
+    def create_pipeline(self, pipeline_name: str) -> None:
+        self.client.check_token_expiration()
+        self.get_pipelines()
+        self.pipeline_exists = False
+               
+        for object in self._pipelines:
+            if object['displayName'] == f'{pipeline_name}':
+                logging.info(f"Successfully retrieved pipeline with name {pipeline_name}.")
+                self.pipeline_exists = True
+                break
+
+        if self.pipeline_exists:
+            logging.warning(f"Pipeline {pipeline_name} already exists, no changes made.")
+            return
+
+        logging.info(f"Attempting to create pipeline with name: {pipeline_name}...")
+        url = self.base_url + "pipelines"
+        
+        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.headers)
+
+        if response.status_code == self.client.http_created_code:
+            logging.info(f"Successfully created pipeline {pipeline_name}.")
+            self.get_pipelines()
+            return response.json()
+        else:
+            logging.error(f"Failed to create the new pipeline: '{pipeline_name}':")
+            self.force_raise_http_error(response)
+
     def assign_pipeline_workspace(self, pipeline_name: str, workspace_name: str, stage: str) -> None:
         self.client.check_token_expiration()
         stage_assigned = self.get_pipeline_stage_assignment(pipeline_name, workspace_name, stage)

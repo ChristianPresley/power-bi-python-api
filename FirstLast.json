@@ -3,7 +3,7 @@
     "description": "",
     "version": "1.0",
     "culture": "en-US",
-    "modifiedTime": "2022-04-06T22:48:54.3339623+00:00",
+    "modifiedTime": "2022-04-08T17:34:15.7549285+00:00",
     "pbi:mashup": {
         "fastCombine": false,
         "allowNativeQueries": false,
@@ -44,8 +44,8 @@
             "partitions": [
                 {
                     "name": "FullRefreshPolicyPartition",
-                    "refreshTime": "2022-04-06T22:49:02.7975441+00:00",
-                    "location": "https://wabieus2bpcdsa.blob.core.windows.net:443/bf50abcf-cba0-4892-ab8a-8a0471a42b32/Table.csv?snapshot=2022-04-06T22%3A49%3A02.7817747Z"
+                    "refreshTime": "2022-04-08T17:34:43.1765768+00:00",
+                    "location": "https://wabieus2bpcdsap1.blob.core.windows.net:443/bbdaf53a-3980-4bfb-8fad-e31799034a14/Table.csv?snapshot=2022-04-08T17%3A34%3A43.1322817Z"
                 }
             ]
         }

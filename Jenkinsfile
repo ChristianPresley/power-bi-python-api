@@ -8,27 +8,38 @@ pipeline {
         }
     }
     stages {
-        stage('Power BI Pipeline Creation') {
+        stage('Dev') {
             steps {
                 withCredentials([string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
                 string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                 string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')]) {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
                         sh "pip install --user -r requirements.txt"
-                        sh "python create_workspaces.py"
-                        sh "python create_pipelines.py"
+                        sh "python dev.py"
                     }
                 }
             }
         }
-        stage('Power BI Pipeline Deployment') {
+        stage('Test') {
             steps {
                 withCredentials([string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
                 string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                 string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')]) {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
                         sh "pip install --user -r requirements.txt"
-                        sh "python deploy_pipelines.py"
+                        sh "python test.py"
+                    }
+                }
+            }
+        }
+        stage('Prod') {
+            steps {
+                withCredentials([string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
+                string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
+                string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')]) {
+                    withEnv(["HOME=${env.WORKSPACE}"]) {
+                        sh "pip install --user -r requirements.txt"
+                        sh "python prod.py"
                     }
                 }
             }
