@@ -203,7 +203,7 @@ class Pipelines:
             return response
         else:
             # logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
     
     def pipeline_stage_deploy_dataflow(self, pipeline_name: str, stage: str) -> None:
         self.client.check_token_expiration()

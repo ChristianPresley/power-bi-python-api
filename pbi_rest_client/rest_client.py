@@ -12,6 +12,7 @@ from msal import PublicClientApplication
 class RestClient:
     tenant_id = os.getenv('AZURE_TENANT_ID')
     client_id = os.getenv('AZURE_CLIENT_ID')
+    client_secret = os.getenv('AZURE_CLIENT_SECRET')
     username = os.getenv('AZURE_USERNAME')
     password = os.getenv('AZURE_PASSWORD')
     
@@ -111,8 +112,8 @@ class RestClient:
         if self.token_expiration < datetime.datetime.utcnow():
             self.request_bearer_token()
 
-    def force_raise_http_error(response: requests.Response, expected_codes: Union[List[int], int] = http_ok_code) -> NoReturn:
-        logging.error(f"Expected response code(s) {expected_codes}, got {response.status_code}: {response.text}.")
+    def force_raise_http_error(response: int):
+        logging.error("Expected response code(s) {expected_codes}, got {response.status_code}: {response.text}.")
         response.raise_for_status()
         raise requests.HTTPError(response)
     
