@@ -48,17 +48,19 @@ class RestClient:
     urlencoded_headers = {"Content-Type": "application/x-www-form-urlencoded"}
     multipart_headers = {"Content-Type": "multipart/form-data"}
 
-    http_accepted_code = 202
-    http_created_code = 201
     http_ok_code = 200
+    http_created_code = 201
+    http_accepted_code = 202
+    expected_codes = [http_ok_code, http_created_code, http_accepted_code]
     
     def __init__(self, authz_header = None, token = None, token_expiration = None):
             self.tenant_id = RestClient.tenant_id
             self.client_id = RestClient.client_id
             self.base_url = RestClient.base_url
-            self.http_accepted_code = RestClient.http_accepted_code
-            self.http_created_code = RestClient.http_created_code
             self.http_ok_code = RestClient.http_ok_code
+            self.http_created_code = RestClient.http_created_code
+            self.http_accepted_code = RestClient.http_accepted_code
+            self.expected_codes = RestClient.expected_codes
             self.authz_header = authz_header
             self.token = token
             self.token_expiration = token_expiration
@@ -112,8 +114,8 @@ class RestClient:
         if self.token_expiration < datetime.datetime.utcnow():
             self.request_bearer_token()
 
-    def force_raise_http_error(response: int):
-        logging.error("Expected response code(s) {expected_codes}, got {response.status_code}: {response.text}.")
+    def force_raise_http_error(self, response: int):
+        logging.error(f"Expected response codes: {self.expected_codes}, response was: {response.status_code}: {response.text}.")
         response.raise_for_status()
         raise requests.HTTPError(response)
     

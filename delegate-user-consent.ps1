@@ -8,6 +8,9 @@ $clientAppId = "4b64746b-957d-42d7-8fb5-0defe36711f3"
 # Power BI Service App ID
 $resourceAppId = "00000009-0000-0000-c000-000000000000"
 
+# Service Account UPN
+$userUpnOrId = "powerbi-1@m365x51939963.onmicrosoft.com"
+
 # All Power BI Read/Write Permissions
 $permissions = @(
     "App.Read.All",
@@ -35,9 +38,6 @@ $permissions = @(
     "Workspace.Read.All",
     "Workspace.ReadWrite.All"
 )
-
-# Service Account UPN
-$userUpnOrId = "powerbi@m365x51939963.onmicrosoft.com"
 
 # Connect to Microsoft Graph (Admin Permissions Required)
 Connect-MgGraph -Scopes ("User.ReadBasic.All Application.ReadWrite.All " `

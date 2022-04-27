@@ -10,6 +10,7 @@ from pbi_rest_client.workspaces import Workspaces
 from pbi_rest_client.pipelines import Pipelines
 from pbi_rest_client.dataflows import Dataflows
 from pbi_rest_client.datasets import Datasets
+from pbi_rest_client.gateways import Gateways
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,6 +21,7 @@ workspaces = Workspaces(client.authz_header, client.token, client.token_expirati
 pipelines = Pipelines(client.authz_header, client.token, client.token_expiration)
 dataflows = Dataflows(client.authz_header, client.token, client.token_expiration)
 datasets = Datasets(client.authz_header, client.token, client.token_expiration)
+gateways = Gateways(client.authz_header, client.token, client.token_expiration)
 
 # print (admin.get_workspaces())
 
@@ -48,9 +50,22 @@ datasets = Datasets(client.authz_header, client.token, client.token_expiration)
 # print (pipelines.pipeline_stage_deploy_dataflow('Testing Environment', 'Test'))
 
 # print (dataflows.get_dataflows('Testing Environment [Dev]'))
-# print (dataflows.get_dataflow('Testing Environment [Dev]', 'SharePointList'))
+# print (dataflows.get_dataflow('Testing Environment [Dev]', 'test'))
 
-print (datasets.take_dataset_owner('Testing Environment [Dev]'))
+# print (datasets.take_dataset_owner('Testing Environment [Dev]'))
+# print (datasets.get_datasets())
+# print (datasets.get_datasets_in_workspace('Testing Environment [Dev]'))
+# print (datasets.get_dataset_id('SQLTableDemo'))
+# print (datasets.get_dataset_parameters('SQLTableDemo'))
+# print (datasets.get_dataset_in_group_parameters('SQLTableDemo', 'Testing Environment [Dev]'))
+# print (datasets.get_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
+# print (datasets.patch_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
 
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', False, 'SharePointListDemo.pbix', 'SharePointListDemo'))
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', False, 'FirstLast.json', 'SharePointListDemo'))
+
+# print (gateways.get_gateways())
+# print (gateways.get_gateway('testGateway'))
+# print (gateways.get_datasources('testGateway'))
+# print (gateways.update_datasource('myDataSource', 'testGateway'))
+print (gateways.create_datasource('testGateway', 'testDataSource'))

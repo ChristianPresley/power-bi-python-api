@@ -1,0 +1,42 @@
+{
+          "name": "test",
+          "description": "",
+          "version": "1.0",
+          "culture": "en-US",
+          "modifiedTime": "2022-04-25T16:28:36.6700988+00:00",
+          "pbi:mashup": {
+                    "fastCombine": false,
+                    "allowNativeQueries": false,
+                    "queriesMetadata": {
+                              "Table": {
+                                        "queryId": "f274d228-26c2-45e6-9843-350326e8abde",
+                                        "queryName": "Table",
+                                        "loadEnabled": true
+                              }
+                    },
+                    "document": "section Section1;\r\nshared Table = let\r\n  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText(\"i45WKkktLlGKjQUA\", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [test = _t])\r\nin\r\n  Source;\r\n"
+          },
+          "annotations": [
+                    {
+                              "name": "pbi:QueryGroups",
+                              "value": "[]"
+                    }
+          ],
+          "entities": [
+                    {
+                              "$type": "LocalEntity",
+                              "name": "Table",
+                              "description": "",
+                              "pbi:refreshPolicy": {
+                                        "$type": "FullRefreshPolicy",
+                                        "location": "Table.csv"
+                              },
+                              "attributes": [
+                                        {
+                                                  "name": "test",
+                                                  "dataType": "string"
+                                        }
+                              ]
+                    }
+          ]
+}
