@@ -21,6 +21,7 @@ class Gateways:
         self._gateways = None
         self._datasource = None
         self._datasources = {}
+        self._datasource_json = {}
         self._server_name = None
         self._database_name = None
         self._datasource_username = None
@@ -103,18 +104,30 @@ class Gateways:
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-datasource
-    def get_datasource(self, gateway_name: str) -> List:
+    def get_datasource(self, datasource_name: str, gateway_name: str) -> List:
         self.client.check_token_expiration()
-        self.get_gateway(gateway_name)
+        self.get_datasources(gateway_name)
+        datasource_found = False
 
-        url = self.client.base_url + "gateways/" + self._gateway['id'] + "/datasources"
+        for item in self._datasources: 
+            if item["datasourceName"] == datasource_name: 
+                logging.info("Found datasource with name: " + datasource_name)
+                datasource_found = True
+                self._datasource_json = item
+                break
+        
+        if datasource_found == False:
+            logging.warning("Unable to find datasource with name: " + datasource_name)
+            return
+
+        url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id']
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved datasources.")
-            self._datasources = response.json()["value"]
-            return self._datasources
+            self._datasource = response.json()
+            return self._datasource
         else:
             logging.error("Failed to retrieve datasources.")
             self.client.force_raise_http_error(response)
@@ -155,11 +168,11 @@ class Gateways:
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/update-datasource
     def update_datasource(self, datasource_name: str, gateway_name: str) -> str:
         self.client.check_token_expiration()
-        self.get_datasources(gateway_name)
+        self.get_datasource(datasource_name, gateway_name)
         self.payload_string_builder()
 
-        url = self.client.base_url + "gateways/" + self._gateway['id'] + "/datasources/"
-        
+        url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id']
+
         payload = {
             "credentialDetails": {
                 "credentialType": "Basic",
@@ -167,11 +180,10 @@ class Gateways:
                 "encryptedConnection": "Encrypted",
                 "encryptionAlgorithm": "None",
                 "privacyLevel": "None",
-                "useCallerAADIdentity": "False",
                 "useEndUserOAuth2Credentials": "False"
             }
         }
-
+                
         response = requests.patch(url, json = payload, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
@@ -180,4 +192,4 @@ class Gateways:
             return self._dataset_parameters
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
