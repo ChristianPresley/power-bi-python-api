@@ -8,7 +8,7 @@ cred_types = {
 }
 
 class Utils:
-    def serialize_credentials(credentials_arr, cred_type):
+    def serialize_credentials(self, credentials_arr, cred_type):
         ''' Returns serialized credentials
         Args:
             credentials_arr (dict): Credentials based on the user input of the credentials type

@@ -11,6 +11,7 @@ from pbi_rest_client.pipelines import Pipelines
 from pbi_rest_client.dataflows import Dataflows
 from pbi_rest_client.datasets import Datasets
 from pbi_rest_client.gateways import Gateways
+from pbi_rest_client.reports import Reports
 
 logging.basicConfig(level=logging.INFO)
 
@@ -22,6 +23,7 @@ pipelines = Pipelines(client.authz_header, client.token, client.token_expiration
 dataflows = Dataflows(client.authz_header, client.token, client.token_expiration)
 datasets = Datasets(client.authz_header, client.token, client.token_expiration)
 gateways = Gateways(client.authz_header, client.token, client.token_expiration)
+reports = Reports(client.authz_header, client.token, client.token_expiration)
 
 # print (admin.get_workspaces())
 
@@ -70,3 +72,7 @@ gateways = Gateways(client.authz_header, client.token, client.token_expiration)
 # print (gateways.get_datasource('myDataSource', 'testGateway'))
 # print (gateways.update_datasource('myDataSource', 'testGateway'))
 # print (gateways.create_datasource('testGateway', 'testDataSource'))
+
+# print (reports.get_reports('Testing Environment [Dev]'))
+# print (reports.get_report('Testing Environment [Dev]', 'SQLTableDemo'))
+print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo'))

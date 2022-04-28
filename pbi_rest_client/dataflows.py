@@ -47,7 +47,7 @@ class Dataflows:
             if item['name'] == dataflow_name:
                 self._dataflow = item
 
-        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name="test-container", blob_name=f"{self._dataflow}1")
+        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name="test-container", blob_name=f"{self._dataflow}")
         url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
         
         response = requests.get(url, headers = self.client.json_headers)
@@ -58,7 +58,7 @@ class Dataflows:
             with open("test.json", "w+") as f:
                 f.write(self._dataflow_json)
             with open("test.json", "rb") as data:
-                blob.upload_blob(data)
+                blob.upload_blob(data, overwrite = True)
             return self._dataflow_json
         else:
             logging.error("Failed to retrieve pipelines.")

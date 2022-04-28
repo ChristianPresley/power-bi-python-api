@@ -11,10 +11,12 @@ from urllib import parse
 from string import Template
 
 from .rest_client import RestClient
+from .helpers.serializecredentials import Utils
 
 class Gateways:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
         self.client = RestClient(authz_header, token, token_expiration)
+        self.utils = Utils()
         self._gateway = {}
         self._gateway_parameters = {}
         self._gateway_json = {}
@@ -24,22 +26,21 @@ class Gateways:
         self._datasource_json = {}
         self._server_name = None
         self._database_name = None
-        self._datasource_username = None
-        self._datasource_password = None
         self._connection_details = None
-        self._credential_data = None
+        self._credential_details = None
 
-    def payload_string_builder(self) -> Template:
+    def payload_string_builder(self, credential_type: str) -> str:
         self._server_name = os.getenv('AZURE_SERVER_NAME')
         self._database_name = os.getenv('AZURE_DB_NAME')
-        self._datasource_username = os.getenv('DATASOURCE_USERNAME')
-        self._datasource_password = os.getenv('DATASOURCE_PASSWORD')
+        datasource_username = os.getenv('DATASOURCE_USERNAME')
+        datasource_password = os.getenv('DATASOURCE_PASSWORD')
+        credential_array = [datasource_username, datasource_password]
 
         self._connection_details = Template("{\"server\":\"$server_name\",\"database\":\"$database_name\"}")
-        self._credential_data = Template("{\"credentialData\":[{\"name\":\"username\", \"value\":\"$username\"},{\"name\":\"password\", \"value\":\"$password\"}]}")
+        self._connection_details.substitute(server_name=self._server_name, database_name=self._database_name)
+        self._credential_details = self.utils.serialize_credentials(credential_array, credential_type)
 
         return self._connection_details
-
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-gateways
     def get_gateways(self) -> List:
@@ -136,17 +137,17 @@ class Gateways:
     def create_datasource(self, gateway_name: str, datasource_name: str) -> str:
         self.client.check_token_expiration()
         self.get_gateway(gateway_name)
-        self.payload_string_builder()
+        self.payload_string_builder('Basic')
 
         url = self.client.base_url + "gateways/" + self._gateway['id'] + "/datasources"
 
         payload = {
             "dataSourceType": "Sql",
-            "connectionDetails": self._connection_details.substitute(server_name=self._server_name, database_name=self._database_name),
+            "connectionDetails": self._connection_details,
             "datasourceName": datasource_name,
             "credentialDetails": {
                 "credentialType": "Basic",
-                "credentials": self._credential_data.substitute(username=self._datasource_username, password=self._datasource_password),
+                "credentials": self._credential_details,
                 "encryptedConnection": "Encrypted",
                 "encryptionAlgorithm": "None",
                 "privacyLevel": "None",
@@ -169,14 +170,15 @@ class Gateways:
     def update_datasource(self, datasource_name: str, gateway_name: str) -> str:
         self.client.check_token_expiration()
         self.get_datasource(datasource_name, gateway_name)
-        self.payload_string_builder()
+        self.payload_string_builder('Basic')
 
         url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id']
 
+        # "credentials": self._credential_details,
         payload = {
             "credentialDetails": {
                 "credentialType": "Basic",
-                "credentials": self._credential_data.substitute(username=self._datasource_username, password=self._datasource_password),
+                "credentials": "{\"credentialData\":[{\"name\":\"username\", \"value\":\"dba\"},{\"name\":\"password\", \"value\":\"cp1YWje3r4i1rfBg\"}]}",
                 "encryptedConnection": "Encrypted",
                 "encryptionAlgorithm": "None",
                 "privacyLevel": "None",
