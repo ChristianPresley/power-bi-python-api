@@ -20,7 +20,8 @@ class Pipelines:
         self._pipeline_stage_order = None
         self._pipeline_stage = None
         self.pipeline_stages = {'DEV': 0, 'TEST': 1, 'PROD': 2}
-        
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/get-pipeline
     def get_pipeline(self, pipeline_name: str) -> List:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)
@@ -36,6 +37,7 @@ class Pipelines:
             logging.error(f"Failed to retrieve pipeline {self._pipeline[pipeline_name]}.")
             self.force_raise_http_error(response)
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/get-pipelines
     def get_pipelines(self) -> List:
         self.client.check_token_expiration()
 
@@ -50,7 +52,7 @@ class Pipelines:
         else:
             logging.error("Failed to retrieve pipelines.")
             self.force_raise_http_error(response)
-       
+    
     def get_pipeline_id(self, pipeline_name: str) -> str:
         self.client.check_token_expiration()
         pipeline_missing = True
@@ -77,6 +79,7 @@ class Pipelines:
         else:
             raise Exception(f"Incorrect stage specified. Available options are: {list(self.pipeline_stages.keys())}")
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/get-pipeline-stages
     def get_pipeline_stage_assignment(self, pipeline_name: str, workspace_name: str, stage: str) -> List:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)
@@ -105,6 +108,7 @@ class Pipelines:
             logging.error(f"Failed to retrieve pipeline stages for pipeline {pipeline_name}.")
             self.force_raise_http_error(response)
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/create-pipeline
     def create_pipeline(self, pipeline_name: str) -> None:
         self.client.check_token_expiration()
         self.get_pipelines()
@@ -133,6 +137,7 @@ class Pipelines:
             logging.error(f"Failed to create the new pipeline: '{pipeline_name}':")
             self.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/assign-workspace
     def assign_pipeline_workspace(self, pipeline_name: str, workspace_name: str, stage: str) -> None:
         self.client.check_token_expiration()
         stage_assigned = self.get_pipeline_stage_assignment(pipeline_name, workspace_name, stage)
@@ -159,6 +164,7 @@ class Pipelines:
                 logging.error(f"Failed to assign workspace with ID {self.workspaces._workspace[workspace_name]} to pipeline {pipeline_name}.")
                 self.force_raise_http_error(response)
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/deploy-all
     def pipeline_stage_deploy_all(self, pipeline_name: str, type: str, stage: str) -> None:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)
@@ -205,6 +211,7 @@ class Pipelines:
             # logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
             self.client.force_raise_http_error(response)
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/selective-deploy
     def pipeline_stage_deploy_dataflow(self, pipeline_name: str, stage: str) -> None:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)

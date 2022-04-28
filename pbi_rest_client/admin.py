@@ -15,6 +15,7 @@ class Admin:
         self._workspaces = None
         self._workspace = {}
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/admin/groups-get-groups-as-admin
     def get_workspaces(self) -> List:
         self.client.check_token_expiration()
 

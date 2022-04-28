@@ -20,6 +20,7 @@ class Datasets:
         self._dataset_json = {}
         self._datasets = None
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset
     def get_dataset(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
 
@@ -38,6 +39,7 @@ class Datasets:
             logging.error("Failed to retrieve workspace.")
             self.force_raise_http_error(response)
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets
     def get_datasets(self) -> List:
         self.client.check_token_expiration()
 
@@ -53,6 +55,7 @@ class Datasets:
             logging.error("Failed to retrieve workspaces.")
             self.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets-in-group
     def get_datasets_in_workspace(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)
@@ -149,6 +152,7 @@ class Datasets:
             logging.error("Failed to retrieve workspaces.")
             self.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/take-over-in-group
     def take_dataset_owner(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)

@@ -15,6 +15,7 @@ class Capacities:
         self.workspaces = Workspaces(authz_header, token, token_expiration)
         self._workspaces = self.workspaces.get_workspaces()
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/capacities/groups-assign-to-capacity
     def set_workspace_capacity(self, workspace_name: str, capacity: str) -> None:
         self.client.check_token_expiration()
 

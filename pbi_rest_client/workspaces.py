@@ -14,7 +14,8 @@ class Workspaces:
         self.client = RestClient(authz_header, token, token_expiration)
         self._workspaces = None
         self._workspace = {}
-        
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-groups
     def get_workspace(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
 
@@ -33,6 +34,7 @@ class Workspaces:
             logging.error("Failed to retrieve workspace.")
             self.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-groups
     def get_workspaces(self) -> List:
         self.client.check_token_expiration()
 
@@ -62,6 +64,7 @@ class Workspaces:
         if workspace_missing:
             logging.warning(f"Unable to find workspace with name: '{workspace_name}'")
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/create-group
     def create_workspace(self, workspace_name: str) -> None:
         self.client.check_token_expiration()
 

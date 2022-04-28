@@ -17,6 +17,7 @@ class Reports:
         self._reports = None
         self._report = {}
     
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/get-reports-in-group
     def get_reports(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)
@@ -49,6 +50,7 @@ class Reports:
             logging.warn("Unable to find report with name: " + report_name + " in workspace with name: " + workspace_name)
             return None
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/export-report-in-group
     def export_report(self, workspace_name: str, report_name: str, chunk_size = 128) -> None:
         self.client.check_token_expiration()
         self.get_report(workspace_name, report_name)

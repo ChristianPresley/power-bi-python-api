@@ -18,6 +18,7 @@ class Imports:
         self.client = RestClient(authz_header, token, token_expiration)
         self.workspaces = Workspaces(authz_header, token, token_expiration)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/imports/post-import
     def import_file_into_workspace(self, workspace_name: str, skip_report: bool, file_path: str, display_name: str) -> None:
         self.workspaces.get_workspace_id(workspace_name)
 
