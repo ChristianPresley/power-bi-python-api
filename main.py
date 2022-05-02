@@ -55,6 +55,7 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 
 # print (dataflows.get_dataflows('Testing Environment [Dev]'))
 # print (dataflows.get_dataflow('Testing Environment [Dev]', 'test'))
+# print (dataflows.delete_dataflow('Testing Environment [Dev]', 'SQLDataFlow'))
 
 # print (datasets.take_dataset_owner('Testing Environment [Dev]'))
 # print (datasets.get_datasets())
@@ -65,7 +66,8 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 # print (datasets.get_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
 # print (datasets.patch_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
 
-# print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SharePointListDemo', './', 'SharePointListDemo.pbix', False, False))
+# print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'SQLTableDemo.pbix', restore_from_blob = True, blob_container_name = 'test-container', dataflow = False, skip_report = False))
+# print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLDataFlow', 'SQLDataFlow.json', restore_from_blob = False, blob_container_name = None, dataflow = True))
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', False, 'FirstLast.json', 'SharePointListDemo'))
 # print (imports.import_file_from_blob_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'test-container', 'SQLTableDemo.pbix', False, False))
 
@@ -78,4 +80,4 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 
 # print (reports.get_reports('Testing Environment [Dev]'))
 # print (reports.get_report('Testing Environment [Dev]', 'SQLTableDemo'))
-print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo', 'test-container'))
+# print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo', 'test-container'))

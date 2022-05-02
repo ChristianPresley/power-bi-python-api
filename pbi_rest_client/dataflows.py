@@ -17,8 +17,8 @@ class Dataflows:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
         self.client = RestClient(authz_header, token, token_expiration)
         self.workspaces = Workspaces(authz_header, token, token_expiration)
-        self._dataflow = {}
-        self._dataflow_json = {}
+        self._dataflow = None
+        self._dataflow_json = None
         self._dataflows = None
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflows/get-dataflows
@@ -42,13 +42,21 @@ class Dataflows:
     def get_dataflow(self, workspace_name: str, dataflow_name: str) -> List:
         self.client.check_token_expiration()
         self.get_dataflows(workspace_name)
+        dataflow_exists = False
 
         for item in self._dataflows:
             if item['name'] == dataflow_name:
                 self._dataflow = item
-
-        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name="test-container", blob_name=f"{self._dataflow}")
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
+                dataflow_exists = True
+                break
+            else:
+                self._dataflow = None
+                
+        if dataflow_exists:
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name="test-container", blob_name=f"{self._dataflow}")
+            url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
+        else:
+            return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
         
         response = requests.get(url, headers = self.client.json_headers)
 
@@ -61,5 +69,21 @@ class Dataflows:
                 blob.upload_blob(data, overwrite = True)
             return self._dataflow_json
         else:
-            logging.error("Failed to retrieve pipelines.")
+            logging.error("Failed to retrieve dataflows.")
+            self.client.force_raise_http_error(response)
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflows/delete-dataflow
+    def delete_dataflow(self, workspace_name: str, dataflow_name: str) -> List:
+        self.client.check_token_expiration()
+        self.get_dataflow(workspace_name, dataflow_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
+        
+        response = requests.delete(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            self._dataflow = None
+            return logging.info("Successfully deleted dataflow with name: " + dataflow_name + " in workspace: " + workspace_name)
+        else:
+            logging.error("Failed to delete dataflow with name: " + dataflow_name + " in workspace: " + workspace_name)
             self.client.force_raise_http_error(response)
