@@ -12,6 +12,7 @@ from pbi_rest_client.dataflows import Dataflows
 from pbi_rest_client.datasets import Datasets
 from pbi_rest_client.gateways import Gateways
 from pbi_rest_client.reports import Reports
+from pbi_rest_client.imports import Imports
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,6 +25,7 @@ dataflows = Dataflows(client.authz_header, client.token, client.token_expiration
 datasets = Datasets(client.authz_header, client.token, client.token_expiration)
 gateways = Gateways(client.authz_header, client.token, client.token_expiration)
 reports = Reports(client.authz_header, client.token, client.token_expiration)
+imports = Imports(client.authz_header, client.token, client.token_expiration)
 
 # print (admin.get_workspaces())
 
@@ -63,8 +65,9 @@ reports = Reports(client.authz_header, client.token, client.token_expiration)
 # print (datasets.get_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
 # print (datasets.patch_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
 
-# print (imports.import_file_into_workspace('Testing Environment [Dev]', False, 'SharePointListDemo.pbix', 'SharePointListDemo'))
+# print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SharePointListDemo', './', 'SharePointListDemo.pbix', False, False))
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', False, 'FirstLast.json', 'SharePointListDemo'))
+# print (imports.import_file_from_blob_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'test-container', 'SQLTableDemo.pbix', False, False))
 
 # print (gateways.get_gateways())
 # print (gateways.get_gateway('testGateway'))
@@ -75,4 +78,4 @@ reports = Reports(client.authz_header, client.token, client.token_expiration)
 
 # print (reports.get_reports('Testing Environment [Dev]'))
 # print (reports.get_report('Testing Environment [Dev]', 'SQLTableDemo'))
-print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo'))
+# print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo'))
