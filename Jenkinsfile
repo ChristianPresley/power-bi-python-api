@@ -10,8 +10,7 @@ pipeline {
     stages {
         stage('Dev') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
+                withCredentials([string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')
                     string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME')
@@ -27,8 +26,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
+                withCredentials([string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')
                     string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME')
@@ -44,8 +42,7 @@ pipeline {
         }
         stage('Prod') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
+                withCredentials([string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')
                     string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME')
