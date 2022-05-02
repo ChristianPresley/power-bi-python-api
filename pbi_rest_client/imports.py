@@ -41,7 +41,7 @@ class Imports:
         self.workspaces.get_workspace_id(workspace_name)
 
         if restore_from_blob:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name=blob_container_name, blob_name=file_name)
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=blob_container_name, blob_name=file_name)
             with open(file_name, 'wb') as file:
                 data = blob.download_blob()
                 file.write(data.readall())

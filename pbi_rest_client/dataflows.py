@@ -53,7 +53,7 @@ class Dataflows:
                 self._dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name="test-container", blob_name=f"{self._dataflow}")
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self._dataflow}")
             url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')

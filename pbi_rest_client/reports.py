@@ -56,7 +56,7 @@ class Reports:
         self.get_report(workspace_name, report_name)
         out_file = report_name + ".pbix"
 
-        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name=f"{container_name}", blob_name=f"{report_name}.pbix")
+        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=f"{container_name}", blob_name=f"{report_name}.pbix")
         url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/reports/" + self._report['id'] + "/Export"
         
         response = requests.get(url, headers = self.client.json_headers, stream = True)
