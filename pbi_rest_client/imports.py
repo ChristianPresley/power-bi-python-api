@@ -22,6 +22,7 @@ class Imports:
         self.dataflows = Dataflows(authz_header, token, token_expiration)
         self.reports = Reports(authz_header, token, token_expiration)
         self._dataflow_name = None
+        self._report_name = None
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/imports/post-import
     def import_file_into_workspace(self, workspace_name: str, display_name: str, file_name: str, **kwargs) -> None:
@@ -54,6 +55,9 @@ class Imports:
                 json_data = json.load(f)
                 self._dataflow_name = json_data['name']
                 self.dataflows.get_dataflow(workspace_name, self._dataflow_name)
+        else:
+            self._report_name = file_name.rstrip('.pbix')
+            self.reports.get_report(workspace_name, self._report_name)
 
         url = (
             f"{self.client.base_url}"
@@ -67,11 +71,15 @@ class Imports:
 
         if dataflow:
             if self.dataflows._dataflow != None:
+                logging.info("Deleting dataflow: " + self._dataflow_name + " before importing into workspace: " + workspace_name)
                 self.dataflows.delete_dataflow(workspace_name, self._dataflow_name)
             files = {
                 'value': ("Content-Disposition: form-data name=model.json; filename=model.json Content-Type: application/json", open(file_name, 'rb'))
             }
         else:
+            if self.reports._report != None:
+                logging.info("Backing up PBIX file: " + file_name + " to blob container: " + blob_container_name)
+                self.reports.export_report(workspace_name, self._report_name, blob_container_name)
             files = {
                 'filename': open(file_name, 'rb')
             }

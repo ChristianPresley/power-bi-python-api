@@ -15,7 +15,7 @@ class Reports:
         self.client = RestClient(authz_header, token, token_expiration)
         self.workspaces = Workspaces(authz_header, token, token_expiration)
         self._reports = None
-        self._report = {}
+        self._report = None
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/get-reports-in-group
     def get_reports(self, workspace_name: str) -> List:
