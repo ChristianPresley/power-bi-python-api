@@ -15,8 +15,7 @@ pipeline {
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')
                     string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME')
                     string(credentialsId: 'AZURE_PASSWORD', variable: 'AZURE_PASSWORD')
-                ])
-                {
+                ]) {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
                         sh "pip install --user -r requirements.txt"
                         sh "python dev.py"
@@ -31,8 +30,7 @@ pipeline {
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')
                     string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME')
                     string(credentialsId: 'AZURE_PASSWORD', variable: 'AZURE_PASSWORD')
-                ])
-                {
+                ]) {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
                         sh "pip install --user -r requirements.txt"
                         sh "python test.py"
@@ -47,8 +45,7 @@ pipeline {
                     string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')
                     string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME')
                     string(credentialsId: 'AZURE_PASSWORD', variable: 'AZURE_PASSWORD')
-                ])
-                {
+                ]) {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
                         sh "pip install --user -r requirements.txt"
                         sh "python prod.py"
