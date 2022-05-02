@@ -78,4 +78,4 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 
 # print (reports.get_reports('Testing Environment [Dev]'))
 # print (reports.get_report('Testing Environment [Dev]', 'SQLTableDemo'))
-# print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo'))
+print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo', 'test-container'))

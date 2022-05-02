@@ -51,12 +51,12 @@ class Reports:
             return None
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/export-report-in-group
-    def export_report(self, workspace_name: str, report_name: str, chunk_size = 128) -> None:
+    def export_report(self, workspace_name: str, report_name: str, container_name: str, chunk_size = 128) -> None:
         self.client.check_token_expiration()
         self.get_report(workspace_name, report_name)
         out_file = report_name + ".pbix"
 
-        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name="test-container", blob_name=f"{report_name}.pbix")
+        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE'), container_name=f"{container_name}", blob_name=f"{report_name}.pbix")
         url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/reports/" + self._report['id'] + "/Export"
         
         response = requests.get(url, headers = self.client.json_headers, stream = True)
