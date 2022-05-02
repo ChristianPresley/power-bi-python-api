@@ -36,7 +36,7 @@ class Dataflows:
             return self._dataflows
         else:
             logging.error("Failed to retrieve pipelines.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflows/get-dataflow
     def get_dataflow(self, workspace_name: str, dataflow_name: str) -> List:
@@ -62,4 +62,4 @@ class Dataflows:
             return self._dataflow_json
         else:
             logging.error("Failed to retrieve pipelines.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)

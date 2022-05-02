@@ -56,7 +56,7 @@ class Gateways:
             return self._gateways
         else:
             logging.error("Failed to retrieve gateways.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-gateway
     def get_gateway(self, gateway_name: str) -> List:
@@ -85,7 +85,7 @@ class Gateways:
             return self._gateway
         else:
             logging.error("Failed to retrieve gateway with name: " + gateway_name)
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-datasources
     def get_datasources(self, gateway_name: str) -> List:

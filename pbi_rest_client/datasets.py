@@ -37,7 +37,7 @@ class Datasets:
                 return response.json()
         else:
             logging.error("Failed to retrieve workspace.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets
     def get_datasets(self) -> List:
@@ -53,7 +53,7 @@ class Datasets:
             return self._datasets
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets-in-group
     def get_datasets_in_workspace(self, workspace_name: str) -> List:
@@ -70,7 +70,7 @@ class Datasets:
             return self._datasets
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     def get_dataset_id(self, dataset_name: str) -> str:
         self.client.check_token_expiration()
@@ -116,7 +116,7 @@ class Datasets:
             return self._dataset_parameters
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-parameters-in-group
     def get_dataset_in_group_parameters(self, dataset_name: str, workspace_name: str) -> str:
@@ -133,7 +133,7 @@ class Datasets:
             return self._dataset_parameters
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasources-in-group
     def get_dataset_in_group_datasources(self, dataset_name: str, workspace_name: str) -> str:
@@ -150,7 +150,7 @@ class Datasets:
             return self._dataset_parameters
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/take-over-in-group
     def take_dataset_owner(self, workspace_name: str) -> List:
@@ -167,4 +167,4 @@ class Datasets:
             return self._dataflow_json
         else:
             logging.error("Failed to retrieve pipelines.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)

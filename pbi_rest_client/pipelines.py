@@ -35,7 +35,7 @@ class Pipelines:
             return response.json()
         else:
             logging.error(f"Failed to retrieve pipeline {self._pipeline[pipeline_name]}.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/get-pipelines
     def get_pipelines(self) -> List:
@@ -51,7 +51,7 @@ class Pipelines:
             return self._pipelines
         else:
             logging.error("Failed to retrieve pipelines.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
     
     def get_pipeline_id(self, pipeline_name: str) -> str:
         self.client.check_token_expiration()
@@ -106,7 +106,7 @@ class Pipelines:
                         return False
         else:
             logging.error(f"Failed to retrieve pipeline stages for pipeline {pipeline_name}.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/create-pipeline
     def create_pipeline(self, pipeline_name: str) -> None:
@@ -135,7 +135,7 @@ class Pipelines:
             return response.json()
         else:
             logging.error(f"Failed to create the new pipeline: '{pipeline_name}':")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/assign-workspace
     def assign_pipeline_workspace(self, pipeline_name: str, workspace_name: str, stage: str) -> None:
@@ -162,7 +162,7 @@ class Pipelines:
                 return f"Pipeline stage assigned successfully with URI: {response.request.url}"
             else:
                 logging.error(f"Failed to assign workspace with ID {self.workspaces._workspace[workspace_name]} to pipeline {pipeline_name}.")
-                self.force_raise_http_error(response)
+                self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/deploy-all
     def pipeline_stage_deploy_all(self, pipeline_name: str, type: str, stage: str) -> None:
@@ -238,4 +238,4 @@ class Pipelines:
             return response
         else:
             # logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)

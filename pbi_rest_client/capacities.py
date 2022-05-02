@@ -47,4 +47,4 @@ class Capacities:
             return response
         else:
             logging.error(f"Failed to change capacity of workspace {workspace_name} to {capacity}.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)

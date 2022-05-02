@@ -32,7 +32,7 @@ class Workspaces:
                 return response.json()
         else:
             logging.error("Failed to retrieve workspace.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-groups
     def get_workspaces(self) -> List:
@@ -48,7 +48,7 @@ class Workspaces:
             return self._workspaces
         else:
             logging.error("Failed to retrieve workspaces.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
 
     def get_workspace_id(self, workspace_name: str) -> str:
         self.client.check_token_expiration()
@@ -90,4 +90,4 @@ class Workspaces:
             return response.json()
         else:
             logging.error(f"Failed to create workspace {workspace_name}.")
-            self.force_raise_http_error(response)
+            self.client.force_raise_http_error(response)
