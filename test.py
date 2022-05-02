@@ -24,4 +24,3 @@ print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Envir
 time.sleep(10)
 print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'promote', 'Dev'))
 time.sleep(10)
-print (dataflows.get_dataflow('Testing Environment [Test]', 'FirstLast'))
