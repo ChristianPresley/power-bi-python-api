@@ -127,7 +127,7 @@ class Pipelines:
         logging.info(f"Attempting to create pipeline with name: {pipeline_name}...")
         url = self.client.base_url + "pipelines"
         
-        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.headers)
+        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.client.json_headers)
 
         if response.status_code == self.client.http_created_code:
             logging.info(f"Successfully created pipeline {pipeline_name}.")
