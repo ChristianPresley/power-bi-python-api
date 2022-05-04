@@ -125,7 +125,7 @@ class Pipelines:
             return
 
         logging.info(f"Attempting to create pipeline with name: {pipeline_name}...")
-        url = self.base_url + "pipelines"
+        url = self.client.base_url + "pipelines"
         
         response = requests.post(url, data={"displayName": pipeline_name}, headers=self.headers)
 
