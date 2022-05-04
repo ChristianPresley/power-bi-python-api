@@ -11,12 +11,13 @@ from urllib import parse
 from string import Template
 
 from .rest_client import RestClient
-from .helpers.serializecredentials import Utils
+from .helpers.serializecredentials import Helpers
+from .helpers.asymmetrickeyencryptor import AsymmetricKeyEncryptor
 
 class Gateways:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
         self.client = RestClient(authz_header, token, token_expiration)
-        self.utils = Utils()
+        self.helpers = Helpers()
         self._gateway = {}
         self._gateway_parameters = {}
         self._gateway_json = {}
@@ -28,6 +29,7 @@ class Gateways:
         self._database_name = None
         self._connection_details = None
         self._credential_details = None
+        self._encrypted_credentials = None
 
     def payload_string_builder(self, credential_type: str) -> str:
         self._server_name = os.getenv('AZURE_SERVER_NAME')
@@ -36,11 +38,20 @@ class Gateways:
         datasource_password = os.getenv('DATASOURCE_PASSWORD')
         credential_array = [datasource_username, datasource_password]
 
-        self._connection_details = Template("{\"server\":\"$server_name\",\"database\":\"$database_name\"}")
-        self._connection_details.substitute(server_name=self._server_name, database_name=self._database_name)
-        self._credential_details = self.utils.serialize_credentials(credential_array, credential_type)
+        connection_details = Template("{\"server\":\"$server_name\",\"database\":\"$database_name\"}")
+        self._connection_details = connection_details.substitute(server_name=self._server_name, database_name=self._database_name)
+        
+        credential_details = self.helpers.serialize_credentials(credential_array, credential_type)
 
-        return self._connection_details
+        public_key = {
+            'exponent': self._gateway['publicKey']['exponent'],
+            'modulus': self._gateway['publicKey']['modulus']
+        }
+
+        key_encryptor = AsymmetricKeyEncryptor(public_key)
+        self._encrypted_credentials = key_encryptor.encode_credentials(credential_details)
+
+        return self._connection_details, self._encrypted_credentials
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-gateways
     def get_gateways(self) -> List:
@@ -105,7 +116,7 @@ class Gateways:
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-datasource
-    def get_datasource(self, datasource_name: str, gateway_name: str) -> List:
+    def get_datasource(self, gateway_name: str, datasource_name: str) -> List:
         self.client.check_token_expiration()
         self.get_datasources(gateway_name)
         datasource_found = False
@@ -133,6 +144,35 @@ class Gateways:
             logging.error("Failed to retrieve datasources.")
             self.client.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-datasource-status
+    def get_datasource_status(self, gateway_name: str, datasource_name: str) -> List:
+        self.client.check_token_expiration()
+        self.get_datasources(gateway_name)
+        datasource_found = False
+
+        for item in self._datasources: 
+            if item["datasourceName"] == datasource_name: 
+                logging.info("Found datasource with name: " + datasource_name)
+                datasource_found = True
+                self._datasource_json = item
+                break
+        
+        if datasource_found == False:
+            logging.warning("Unable to find datasource with name: " + datasource_name)
+            return
+
+        url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id'] + "/status"
+        
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info("Successfully retrieved datasources.")
+            self._datasource_status = response.content
+            return self._datasource_status
+        else:
+            logging.error("Failed to retrieve datasources.")
+            self.client.force_raise_http_error(response)
+
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/create-datasource
     def create_datasource(self, gateway_name: str, datasource_name: str) -> str:
         self.client.check_token_expiration()
@@ -147,10 +187,10 @@ class Gateways:
             "datasourceName": datasource_name,
             "credentialDetails": {
                 "credentialType": "Basic",
-                "credentials": self._credential_details,
+                "credentials": self._encrypted_credentials,
                 "encryptedConnection": "Encrypted",
-                "encryptionAlgorithm": "None",
-                "privacyLevel": "None",
+                "encryptionAlgorithm": "RSA-OAEP",
+                "privacyLevel": "Organizational",
                 "useCallerAADIdentity": "False",
                 "useEndUserOAuth2Credentials": "False"
             }
@@ -167,22 +207,23 @@ class Gateways:
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/update-datasource
-    def update_datasource(self, datasource_name: str, gateway_name: str) -> str:
+    def update_datasource(self, gateway_name: str, datasource_name: str) -> str:
         self.client.check_token_expiration()
-        self.get_datasource(datasource_name, gateway_name)
+        self.get_datasource(gateway_name, datasource_name)
+        self.get_gateway(gateway_name)
         self.payload_string_builder('Basic')
 
         url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id']
 
-        # "credentials": self._credential_details,
         payload = {
             "credentialDetails": {
                 "credentialType": "Basic",
-                "credentials": "{\"credentialData\":[{\"name\":\"username\", \"value\":\"dba\"},{\"name\":\"password\", \"value\":\"cp1YWje3r4i1rfBg\"}]}",
+                "credentials": self._encrypted_credentials,
                 "encryptedConnection": "Encrypted",
-                "encryptionAlgorithm": "None",
-                "privacyLevel": "None",
-                "useEndUserOAuth2Credentials": "False"
+                "encryptionAlgorithm": "RSA-OAEP",
+                "privacyLevel": "Organizational",
+                "useCallerAADIdentity": "False",
+                "useEndUserOAuth2Credentials": "True"
             }
         }
                 

@@ -55,6 +55,23 @@ class Datasets:
             logging.error("Failed to retrieve workspaces.")
             self.client.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets
+    def bind_to_gateway(self, workspace_name) -> List:
+        self.client.check_token_expiration()
+        self.workspaces.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/datasets/8e677ee5-5423-4ab4-8c33-3cd4161790af/Default.BindToGateway"
+        
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info("Successfully retrieved workspaces.")
+            self._datasets = response.json()["value"]
+            return self._datasets
+        else:
+            logging.error("Failed to retrieve workspaces.")
+            self.client.force_raise_http_error(response)
+
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets-in-group
     def get_datasets_in_workspace(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
@@ -136,11 +153,12 @@ class Datasets:
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasources-in-group
-    def get_dataset_in_group_datasources(self, dataset_name: str, workspace_name: str) -> str:
+    def get_datasources(self, dataset_name: str, workspace_name: str) -> str:
         self.client.check_token_expiration()
         self.get_dataset_in_workspace_id(dataset_name, workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/datasets/" + self._dataset[dataset_name] + "/datasources"
+        # url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/datasets/" + self._dataset[dataset_name] + "/datasources"
+        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/datasets/8e677ee5-5423-4ab4-8c33-3cd4161790af/datasources"
         
         response = requests.get(url, headers = self.client.json_headers)
 

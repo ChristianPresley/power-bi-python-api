@@ -7,7 +7,7 @@ cred_types = {
     'BASIC': 'Basic'
 }
 
-class Utils:
+class Helpers:
     def serialize_credentials(self, credentials_arr, cred_type):
         ''' Returns serialized credentials
         Args:

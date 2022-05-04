@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import base64
-from helpers.asymmetric1024keyencryptionhelper import Asymmetric1024KeyEncryptionHelper
-from helpers.asymmetrichigherkeyencryptionhelper import AsymmetricHigherKeyEncryptionHelper
+from ..helpers.asymmetric1024keyencryptionhelper import Asymmetric1024KeyEncryptionHelper
+from ..helpers.asymmetrichigherkeyencryptionhelper import AsymmetricHigherKeyEncryptionHelper
 
 class AsymmetricKeyEncryptor:
 
@@ -21,18 +21,18 @@ class AsymmetricKeyEncryptor:
 
         self.public_key = public_key
 
-    def encode_credentials(self, credentails_data):
+    def encode_credentials(self, credentials_data):
         ''' Encodes the credentials based on modulus size
         Args:
-            credentails_data (str): Credentials data to get encrypted
+            credentials_data (str): Credentials data to get encrypted
         Returns:
             String: Encrypted credentials
         '''
 
-        if not credentails_data or credentails_data == '':
+        if not credentials_data or credentials_data == '':
             raise TypeError('credentials data')
 
-        plain_text_bytes = bytes(credentails_data, 'utf-8')
+        plain_text_bytes = bytes(credentials_data, 'utf-8')
 
         # Convert strings to bytes object
         modulus_bytes = base64.b64decode(self.public_key['modulus'])
