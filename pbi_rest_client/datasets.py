@@ -186,3 +186,20 @@ class Datasets:
         else:
             logging.error("Failed to retrieve pipelines.")
             self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/refresh-dataset-in-group
+    def refresh_dataset(self, workspace_name: str) -> List:
+        self.client.check_token_expiration()
+        self.workspaces.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/datasets/c8aaf294-e7d3-4ed2-964a-df19bcec5455/Default.TakeOver"
+        
+        response = requests.post(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info("Successfully retrieved dataflows.")
+            self._dataflow_json = json.dumps(response.json(), indent=10)
+            return self._dataflow_json
+        else:
+            logging.error("Failed to retrieve pipelines.")
+            self.client.force_raise_http_error(response)

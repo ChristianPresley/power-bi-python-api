@@ -1,49 +1,17 @@
 #!/usr/bin/env python
 
-import sys
-import os
 import datetime
 import logging
 import requests
 
-from typing import Dict, List, NoReturn, Union
-from msal import PublicClientApplication
+from typing import Dict
+from msal import PublicClientApplication, ConfidentialClientApplication
+
+from .config import BaseConfig
+
+config = BaseConfig()
 
 class RestClient:
-    tenant_id = os.getenv('AZURE_TENANT_ID')
-    client_id = os.getenv('AZURE_CLIENT_ID')
-    client_secret = os.getenv('AZURE_CLIENT_SECRET')
-    username = os.getenv('AZURE_USERNAME')
-    password = os.getenv('AZURE_PASSWORD')
-    
-    scope = [
-        'https://analysis.windows.net/powerbi/api/App.Read.All',
-        'https://analysis.windows.net/powerbi/api/Capacity.Read.All',
-        'https://analysis.windows.net/powerbi/api/Capacity.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Content.Create',
-        'https://analysis.windows.net/powerbi/api/Dashboard.Read.All',
-        'https://analysis.windows.net/powerbi/api/Dashboard.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Dataflow.Read.All',
-        'https://analysis.windows.net/powerbi/api/Dataflow.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Dataset.Read.All',
-        'https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Gateway.Read.All',
-        'https://analysis.windows.net/powerbi/api/Gateway.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Pipeline.Deploy',
-        'https://analysis.windows.net/powerbi/api/Pipeline.Read.All',
-        'https://analysis.windows.net/powerbi/api/Pipeline.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Report.Read.All',
-        'https://analysis.windows.net/powerbi/api/Report.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/StorageAccount.Read.All',
-        'https://analysis.windows.net/powerbi/api/StorageAccount.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Tenant.Read.All',
-        'https://analysis.windows.net/powerbi/api/Tenant.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/UserState.ReadWrite.All',
-        'https://analysis.windows.net/powerbi/api/Workspace.Read.All',
-        'https://analysis.windows.net/powerbi/api/Workspace.ReadWrite.All'
-    ]
-
-    base_url = "https://api.powerbi.com/v1.0/myorg/"
     json_headers = {"Content-Type": "application/json"}
     urlencoded_headers = {"Content-Type": "application/x-www-form-urlencoded"}
     multipart_headers = {"Content-Type": "multipart/form-data"}
@@ -54,9 +22,7 @@ class RestClient:
     expected_codes = [http_ok_code, http_created_code, http_accepted_code]
     
     def __init__(self, authz_header = None, token = None, token_expiration = None):
-            self.tenant_id = RestClient.tenant_id
-            self.client_id = RestClient.client_id
-            self.base_url = RestClient.base_url
+            self.base_url = config.PBI_BASE_URL
             self.http_ok_code = RestClient.http_ok_code
             self.http_created_code = RestClient.http_created_code
             self.http_accepted_code = RestClient.http_accepted_code
@@ -89,23 +55,44 @@ class RestClient:
             renew_token = False
 
         if renew_token:
-            app = PublicClientApplication(
-                client_id = self.client_id,
-                authority = "https://login.microsoftonline.com/" + self.tenant_id
-            )
+            if config.AUTHENTICATION_MODE == 'ServiceAccount':
+                logging.info('Authentication mode set to: ' + config.AUTHENTICATION_MODE)
 
-            acquire_tokens_result = app.acquire_token_by_username_password(
-                username = RestClient.username,
-                password = RestClient.password,
-                scopes = RestClient.scope
-            )
+                # https://msal-python.readthedocs.io/en/latest/#publicclientapplication
+                app = PublicClientApplication(
+                    client_id = config.CLIENT_ID,
+                    authority = config.AUTHORITY
+                )
+
+                # https://msal-python.readthedocs.io/en/latest/#msal.PublicClientApplication.acquire_token_by_username_password
+                acquire_tokens_result = app.acquire_token_by_username_password(
+                    username = config.SERVICE_ACCOUNT_USERNAME,
+                    password = config.SERVICE_ACCOUNT_PASSWORD,
+                    scopes = config.SCOPE
+                )
+            elif config.AUTHENTICATION_MODE == 'ServicePrincipal':
+                logging.info('Authentication mode set to: ' + config.AUTHENTICATION_MODE)
+
+                # https://msal-python.readthedocs.io/en/latest/#confidentialclientapplication
+                app = ConfidentialClientApplication(
+                    client_id = config.CLIENT_ID,
+                    client_credential = config.CLIENT_SECRET,
+                    authority = config.AUTHORITY
+                )
+
+                # https://msal-python.readthedocs.io/en/latest/#msal.ConfidentialClientApplication.acquire_token_for_client
+                acquire_tokens_result = app.acquire_token_for_client(
+                    scopes = config.SCOPE
+                )
+            else:
+                raise Exception("Invalid authentication mode specified. Must be 'ServiceAccount' or 'ServicePrincipal'")
 
             if 'error' in acquire_tokens_result:
-                logging.error(f"Failed to retrieve access token for client id {self.client_id}.")
+                logging.error(f"Failed to retrieve access token for client id {config.CLIENT_ID}.")
                 logging.error("Error: " + acquire_tokens_result['error'])
                 raise Exception("Description: " + acquire_tokens_result['error_description'])
             else:
-                logging.info(f"Successfully retrieved access token for client id {self.client_id}.")
+                logging.info(f"Successfully retrieved access token for client id {config.CLIENT_ID}.")
                 self.token = acquire_tokens_result['access_token']
                 self.token_expiration = datetime.datetime.utcnow() + datetime.timedelta(seconds=acquire_tokens_result["expires_in"])
                 self.authz_header = self.get_authz_header()

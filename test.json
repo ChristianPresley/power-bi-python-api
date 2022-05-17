@@ -1,20 +1,20 @@
 {
-          "name": "test",
+          "name": "SQLDataFlow",
           "description": "",
           "version": "1.0",
           "culture": "en-US",
-          "modifiedTime": "2022-04-25T16:28:36.6700988+00:00",
+          "modifiedTime": "2022-05-17T06:40:26.9362314+00:00",
           "pbi:mashup": {
                     "fastCombine": false,
                     "allowNativeQueries": false,
                     "queriesMetadata": {
-                              "Table": {
-                                        "queryId": "f274d228-26c2-45e6-9843-350326e8abde",
-                                        "queryName": "Table",
+                              "SalesLT Product": {
+                                        "queryId": "9a78c406-be8d-47ad-9bd9-9cb300ce246e",
+                                        "queryName": "SalesLT Product",
                                         "loadEnabled": true
                               }
                     },
-                    "document": "section Section1;\r\nshared Table = let\r\n  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText(\"i45WKkktLlGKjQUA\", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [test = _t])\r\nin\r\n  Source;\r\n"
+                    "document": "section Section1;\r\nshared #\"SalesLT Product\" = let\r\n  Source = Sql.Database(\"df6bce77.database.windows.net\", \"kpdemo\", [CreateNavigationProperties = false]),\r\n  Navigation = Source{[Schema = \"SalesLT\", Item = \"Product\"]}[Data],\r\n  #\"Remove columns\" = Table.RemoveColumns(Navigation, Table.ColumnsOfType(Navigation, {type table, type record, type list, type nullable binary, type binary, type function}))\r\nin\r\n  #\"Remove columns\";\r\n"
           },
           "annotations": [
                     {
@@ -25,16 +25,76 @@
           "entities": [
                     {
                               "$type": "LocalEntity",
-                              "name": "Table",
+                              "name": "SalesLT Product",
                               "description": "",
                               "pbi:refreshPolicy": {
                                         "$type": "FullRefreshPolicy",
-                                        "location": "Table.csv"
+                                        "location": "SalesLT%20Product.csv"
                               },
                               "attributes": [
                                         {
-                                                  "name": "test",
+                                                  "name": "ProductID",
+                                                  "dataType": "int64"
+                                        },
+                                        {
+                                                  "name": "Name",
                                                   "dataType": "string"
+                                        },
+                                        {
+                                                  "name": "ProductNumber",
+                                                  "dataType": "string"
+                                        },
+                                        {
+                                                  "name": "Color",
+                                                  "dataType": "string"
+                                        },
+                                        {
+                                                  "name": "StandardCost",
+                                                  "dataType": "decimal"
+                                        },
+                                        {
+                                                  "name": "ListPrice",
+                                                  "dataType": "decimal"
+                                        },
+                                        {
+                                                  "name": "Size",
+                                                  "dataType": "string"
+                                        },
+                                        {
+                                                  "name": "Weight",
+                                                  "dataType": "double"
+                                        },
+                                        {
+                                                  "name": "ProductCategoryID",
+                                                  "dataType": "int64"
+                                        },
+                                        {
+                                                  "name": "ProductModelID",
+                                                  "dataType": "int64"
+                                        },
+                                        {
+                                                  "name": "SellStartDate",
+                                                  "dataType": "dateTime"
+                                        },
+                                        {
+                                                  "name": "SellEndDate",
+                                                  "dataType": "dateTime"
+                                        },
+                                        {
+                                                  "name": "DiscontinuedDate",
+                                                  "dataType": "dateTime"
+                                        },
+                                        {
+                                                  "name": "ThumbnailPhotoFileName",
+                                                  "dataType": "string"
+                                        },
+                                        {
+                                                  "name": "rowguid",
+                                                  "dataType": "string"
+                                        },
+                                        {
+                                                  "name": "ModifiedDate",
+                                                  "dataType": "dateTime"
                                         }
                               ]
                     }

@@ -3,6 +3,8 @@
 import logging
 import json
 
+from pbi_rest_client.utils.utils import Utils
+from pbi_rest_client.config import BaseConfig
 from pbi_rest_client.admin import Admin
 from pbi_rest_client.capacities import Capacities
 from pbi_rest_client.rest_client import RestClient
@@ -10,22 +12,31 @@ from pbi_rest_client.workspaces import Workspaces
 from pbi_rest_client.pipelines import Pipelines
 from pbi_rest_client.dataflows import Dataflows
 from pbi_rest_client.datasets import Datasets
+from pbi_rest_client.dashboards import Dashboards
 from pbi_rest_client.gateways import Gateways
 from pbi_rest_client.reports import Reports
 from pbi_rest_client.imports import Imports
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 client = RestClient()
+utils = Utils()
+config = BaseConfig()
 admin = Admin(client.authz_header, client.token, client.token_expiration)
 capacities = Capacities(client.authz_header, client.token, client.token_expiration)
 workspaces = Workspaces(client.authz_header, client.token, client.token_expiration)
 pipelines = Pipelines(client.authz_header, client.token, client.token_expiration)
 dataflows = Dataflows(client.authz_header, client.token, client.token_expiration)
 datasets = Datasets(client.authz_header, client.token, client.token_expiration)
+dashboards = Dashboards(client.authz_header, client.token, client.token_expiration)
 gateways = Gateways(client.authz_header, client.token, client.token_expiration)
 reports = Reports(client.authz_header, client.token, client.token_expiration)
 imports = Imports(client.authz_header, client.token, client.token_expiration)
+
+# print (utils.get_keyvault_secret('appconfig'))
+# print (utils.get_appconfig_keys(key_filter = 'workspace-name*'))
+# print (utils.get_appconfig_keys())
+# print (utils.get_appconfig_feature_flags(feature_flag_name = 'service-account'))
 
 # print (admin.get_workspaces())
 
@@ -51,14 +62,14 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Prod]', 'prod'))
 # print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'promote', 'Dev'))
 # print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'promote', 'Test'))
-# print (pipelines.pipeline_stage_deploy_dataflow('Testing Environment', 'Test'))
+# print (pipelines.pipeline_stage_deploy_selective('Testing Environment', 'promote', 'Dev'))
 
 # print (dataflows.get_dataflow_storage_accounts())
 # print (dataflows.get_dataflows('Testing Environment [Dev]'))
 # print (dataflows.get_dataflow('Testing Environment [Dev]', 'SQLDataFlow'))
 # print (dataflows.get_dataflow_datasources('Testing Environment [Dev]', 'SQLDataFlow'))
 # print (dataflows.update_dataflow('Testing Environment [Dev]', 'SQLDataFlow'))
-# print (dataflows.delete_dataflow('Testing Environment [Dev]', 'SQLDataFlow'))
+print (dataflows.delete_dataflow('Testing Environment [Dev]', 'SQLDataFlow'))
 
 # print (datasets.take_dataset_owner('Testing Environment [Dev]'))
 # print (datasets.get_datasets())
@@ -69,6 +80,8 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 # print (datasets.get_dataset_in_group_parameters('SQLTableDemo', 'Testing Environment [Dev]'))
 # print (datasets.get_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
 # print (datasets.patch_dataset_in_group_datasources('SQLTableDemo', 'Testing Environment [Dev]'))
+
+# print (dashboards.get_dashboards('Testing Environment [Dev]'))
 
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'SQLTableDemo.pbix', restore_from_blob = True, blob_container_name = 'test-container', dataflow = False, skip_report = False))
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLDataFlow', 'SQLDataFlow.json', restore_from_blob = False, blob_container_name = None, dataflow = True))

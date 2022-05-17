@@ -2,24 +2,37 @@
 
 import logging
 import datetime
-from tabnanny import check
 import requests
 
 from typing import List
 from urllib import parse
 
+from .utils.utils import Utils
 from .rest_client import RestClient
 from .workspaces import Workspaces
+from .dataflows import Dataflows
+from .datasets import Datasets
+from .dashboards import Dashboards
+from .reports import Reports
+
+utils = Utils()
 
 class Pipelines:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
         self.client = RestClient(authz_header, token, token_expiration)
         self.workspaces = Workspaces(authz_header, token, token_expiration)
+        self.dataflows = Dataflows(authz_header, token, token_expiration)
+        self.datasets = Datasets(authz_header, token, token_expiration)
+        self.dashboards = Dashboards(authz_header, token, token_expiration)
+        self.reports = Reports(authz_header, token, token_expiration)
         self._pipelines = None
         self._pipeline = {}
+        self._stage_deploy_is_backwards = False
         self._pipeline_stage_order = None
         self._pipeline_stage = None
-        self.pipeline_stages = {'DEV': 0, 'TEST': 1, 'PROD': 2}
+        self._pipeline_target_stage = None
+        self._workspace_keys = utils.get_appconfig_keys(key_filter = 'workspace-name*')
+        self.pipeline_stages = {'dev': 0, 'test': 1, 'prod': 2}
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/get-pipeline
     def get_pipeline(self, pipeline_name: str) -> List:
@@ -69,7 +82,7 @@ class Pipelines:
             raise RuntimeError(f"Unable to find pipeline with name: '{pipeline_name}'")
 
     def validate_pipeline_stage(self, stage: str):
-        stage = stage.upper()
+        stage = stage.lower()
         
         if stage in self.pipeline_stages:
             logging.info(f"Pipeline stage order is set to {stage}.")
@@ -127,7 +140,7 @@ class Pipelines:
         logging.info(f"Attempting to create pipeline with name: {pipeline_name}...")
         url = self.client.base_url + "pipelines"
         
-        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.client.json_headers)
+        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.client.urlencoded_headers)
 
         if response.status_code == self.client.http_created_code:
             logging.info(f"Successfully created pipeline {pipeline_name}.")
@@ -163,35 +176,37 @@ class Pipelines:
             else:
                 logging.error(f"Failed to assign workspace with ID {self.workspaces._workspace[workspace_name]} to pipeline {pipeline_name}.")
                 self.client.force_raise_http_error(response)
-    
-    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/deploy-all
-    def pipeline_stage_deploy_all(self, pipeline_name: str, type: str, stage: str) -> None:
-        self.client.check_token_expiration()
-        self.get_pipeline_id(pipeline_name)
+
+    def pipeline_stage_selector(self, type: str, stage: str):
         self.validate_pipeline_stage(stage)
-        is_backwards = False
-        
-        request_url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "/deployAll"
-        
+
         if type != 'promote' and type != 'demote':
             raise Exception("Incorrect pipeline stage deployment type specified. Valid options are: 'promote' and 'demote'")
 
         if type == 'promote':
             if self._pipeline_stage_order < 2:
-                target_stage = self._pipeline_stage_order + 1
+                self._pipeline_target_stage = self._pipeline_stage_order + 1
             elif self._pipeline_stage_order >= 2:
                 raise Exception("Production is the highest stage in Power BI pipeline. You cannot promote Production to another stage.")
         
         if type == 'demote':
             if self._pipeline_stage_order > 0:
-                target_stage = self._pipeline_stage_order - 1
-                is_backwards = True
+                self._pipeline_target_stage = self._pipeline_stage_order - 1
+                self._stage_deploy_is_backwards = True
             elif self._pipeline_stage_order <= 0:
                 raise Exception("Development is the lowest stage in Power BI pipeline. You cannot demote Development to another stage.")
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/deploy-all
+    def pipeline_stage_deploy_all(self, pipeline_name: str, type: str, stage: str) -> None:
+        self.client.check_token_expiration()
+        self.get_pipeline_id(pipeline_name)
+        self.pipeline_stage_selector(type, stage)
+        
+        request_url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "/deployAll"
 
         request_payload = {
             'sourceStageOrder': self._pipeline_stage_order,
-            'isBackwardDeployment': is_backwards,
+            'isBackwardDeployment': self._stage_deploy_is_backwards,
             'options': {
                 'allowCreateArtifact': True,
                 'allowOverwriteArtifact': True,
@@ -205,31 +220,72 @@ class Pipelines:
         response = requests.post(request_url, json = request_payload, headers = self.client.json_headers)
         
         if response.status_code == self.client.http_accepted_code:
-            logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[target_stage]}'.")
+            logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
             return response
         else:
             # logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/selective-deploy
-    def pipeline_stage_deploy_dataflow(self, pipeline_name: str, stage: str) -> None:
+    def pipeline_stage_deploy_selective(self, pipeline_name: str, type: str, stage: str) -> None:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)
-        self.validate_pipeline_stage(stage)
-        
+        self.pipeline_stage_selector(type, stage)
+        workspace_name = self._workspace_keys[f'workspace-name-{self._pipeline_stage}']
+        deploy_dataflows = utils.get_appconfig_feature_flags('dataflows')['enabled']
+        deploy_datasets = utils.get_appconfig_feature_flags('datasets')['enabled']
+        deploy_reports = utils.get_appconfig_feature_flags('reports')['enabled']
+        deploy_dashboards = utils.get_appconfig_feature_flags('dashboards')['enabled']
+        dataflow_list = []
+        dataset_list = []
+        report_list = []
+        dashboard_list = []
+
+        if deploy_dataflows:
+            self.dataflows.get_dataflows(workspace_name)
+            for item in self.dataflows._dataflows:
+                dataflow_list.append({"sourceId": f"{item['objectId']}"})
+
+        if deploy_datasets or deploy_reports:
+            if deploy_reports and not deploy_datasets:
+                self.reports.get_reports(workspace_name)
+                for item in self.reports._reports:
+                    report_list.append({"sourceId": f"{item['id']}"})
+                    dataset_list.append({"sourceId": f"{item['datasetId']}"})
+            elif not deploy_reports and deploy_datasets:
+                self.datasets.get_datasets_in_workspace(workspace_name)
+                for item in self.datasets._datasets:
+                    dataset_list.append({"sourceId": f"{item['id']}"})
+            else:
+                self.reports.get_reports(workspace_name)
+                self.datasets.get_datasets_in_workspace(workspace_name)
+                for item in self.reports._reports:
+                    report_list.append({"sourceId": f"{item['id']}"})
+                for item in self.datasets._datasets:
+                    dataset_list.append({"sourceId": f"{item['id']}"})
+
+        if deploy_dashboards:
+            self.dashboards.get_dashboards(workspace_name)
+            for item in self.dashboards.dashboards:
+                dashboard_list.append({"sourceId": f"{item['id']}"})
+
         request_url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "/deploy"
-        
+
         request_payload = {
-            "sourceStageOrder": "0",
-            "dataflows": 
-                [{
-                  "sourceId": "23036473-9ba0-4757-ae49-04dd39977d76"
-                }],
-            "options": {
-                "allowOverwriteArtifact": True,
-                "allowCreateArtifact": True
+            "sourceStageOrder": self._pipeline_stage_order,
+            "dataflows": dataflow_list,
+            "datasets": dataset_list,
+            "reports": report_list,
+            "dashboards": dashboard_list,
+            'options': {
+                'allowCreateArtifact': True,
+                'allowOverwriteArtifact': True,
+                'allowOverwriteTargetArtifactLabel': True,
+                'allowPurgeData': True,
+                'allowSkipTilesWithMissingPrerequisites': True,
+                'allowTakeOver': True
             }
-}
+        }
         
         response = requests.post(request_url, json = request_payload, headers = self.client.json_headers)
         
