@@ -175,6 +175,13 @@ class Dataflows:
         self.client.check_token_expiration()
         self.get_dataflow(workspace_name, dataflow_name)
 
+        if self._dataflow == None:
+            logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot delete the dataflow.")
+            return None
+        if self._dataflow['name'] != dataflow_name:
+            logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot delete the dataflow.")
+            return None
+
         url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
         
         response = requests.delete(url, headers = self.client.json_headers)
