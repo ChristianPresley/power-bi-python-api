@@ -10,34 +10,31 @@ from .config import BaseConfig
 
 config = BaseConfig()
 
-class RestClient:
-    json_headers = {"Content-Type": "application/json"}
-    urlencoded_headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    multipart_headers = {"Content-Type": "multipart/form-data"}
+# Variables
+http_ok_code = 200
+http_created_code = 201
+http_accepted_code = 202
+expected_codes = [http_ok_code, http_created_code, http_accepted_code]
 
-    http_ok_code = 200
-    http_created_code = 201
-    http_accepted_code = 202
-    expected_codes = [http_ok_code, http_created_code, http_accepted_code]
-    
+class RestClient:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
-            self.base_url = config.PBI_BASE_URL
-            self.http_ok_code = RestClient.http_ok_code
-            self.http_created_code = RestClient.http_created_code
-            self.http_accepted_code = RestClient.http_accepted_code
-            self.expected_codes = RestClient.expected_codes
-            self.authz_header = authz_header
-            self.token = token
-            self.token_expiration = token_expiration
-            self.request_bearer_token()
-            self.json_headers = RestClient.json_headers
-            self.json_headers.update(self.authz_header)
-            self.urlencoded_headers = RestClient.urlencoded_headers
-            self.urlencoded_headers.update(self.authz_header)
-            self.multipart_headers = RestClient.multipart_headers
-            self.multipart_headers.update(self.authz_header)
-            self._workspaces = None
-            self._pipelines = None
+        self.base_url = config.PBI_BASE_URL
+        self.http_ok_code = http_ok_code
+        self.http_created_code = http_created_code
+        self.http_accepted_code = http_accepted_code
+        self.expected_codes = expected_codes
+        self.authz_header = authz_header
+        self.token = token
+        self.token_expiration = token_expiration
+        self.request_bearer_token()
+        self.json_headers = config.JSON_HEADERS
+        self.json_headers.update(self.authz_header)
+        self.url_encoded_headers = config.URL_ENCODED_HEADERS
+        self.url_encoded_headers.update(self.authz_header)
+        self.multipart_headers = config.MULTIPART_HEADERS
+        self.multipart_headers.update(self.authz_header)
+        self._workspaces = None
+        self._pipelines = None
 
     def get_authz_header(self) -> Dict[str, str]:
         return {"Authorization": "Bearer " + self.token}

@@ -7,8 +7,13 @@ from typing import List
 from .rest_client import RestClient
 
 class Workspaces:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
+    # def __init__(self, authz_header = None, token = None, token_expiration = None):
+    #     self.client = RestClient(authz_header, token, token_expiration)
+    #     self._workspaces = None
+    #     self._workspace = {}
+
+    def __init__(self):
+        self.client = RestClient()
         self._workspaces = None
         self._workspace = {}
     
@@ -79,7 +84,7 @@ class Workspaces:
             "name": workspace_name
         }
         
-        response = requests.post(url, data = payload, headers = self.client.urlencoded_headers)
+        response = requests.post(url, data = payload, headers = self.client.url_encoded_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info(f"Successfully created workspace {workspace_name}.")

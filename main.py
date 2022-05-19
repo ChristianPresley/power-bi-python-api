@@ -4,7 +4,6 @@ import logging
 
 from pbi_rest_client.utils.utils import Utils
 from pbi_rest_client.config import BaseConfig
-from pbi_rest_client.admin import Admin
 from pbi_rest_client.capacities import Capacities
 from pbi_rest_client.rest_client import RestClient
 from pbi_rest_client.workspaces import Workspaces
@@ -21,9 +20,9 @@ logging.basicConfig(level=logging.INFO)
 client = RestClient()
 utils = Utils()
 config = BaseConfig()
-admin = Admin(client.authz_header, client.token, client.token_expiration)
 capacities = Capacities(client.authz_header, client.token, client.token_expiration)
-workspaces = Workspaces(client.authz_header, client.token, client.token_expiration)
+# workspaces = Workspaces(client.authz_header, client.token, client.token_expiration)
+workspaces = Workspaces()
 pipelines = Pipelines(client.authz_header, client.token, client.token_expiration)
 dataflows = Dataflows(client.authz_header, client.token, client.token_expiration)
 datasets = Datasets(client.authz_header, client.token, client.token_expiration)
@@ -37,8 +36,6 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 # print (utils.get_appconfig_keys())
 # print (utils.get_appconfig_feature_flags(feature_flag_name = 'service-account'))
 
-# print (admin.get_workspaces())
-
 # print (workspaces.create_workspace('Testing Environment [Dev]'))
 # print (workspaces.create_workspace('Testing Environment [Test]'))
 # print (workspaces.create_workspace('Testing Environment [Prod]'))
@@ -47,13 +44,11 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 # print (capacities.set_workspace_capacity('Testing Environment [Test]', '00000000-0000-0000-0000-000000000000'))
 # print (capacities.set_workspace_capacity('Testing Environment [Prod]', '00000000-0000-0000-0000-000000000000'))
 
-# print (workspaces.get_workspaces())
-
 # print (capacities.set_workspace_capacity('Testing Environment [Dev]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 # print (capacities.set_workspace_capacity('Testing Environment [Test]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 # print (capacities.set_workspace_capacity('Testing Environment [Prod]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 
-# print (workspaces.get_workspaces())
+print (workspaces.get_workspaces())
 
 # print (pipelines.create_pipeline('Testing Environment'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 'dev'))

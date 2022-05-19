@@ -17,7 +17,8 @@ utils = Utils()
 class Pipelines:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
         self.client = RestClient(authz_header, token, token_expiration)
-        self.workspaces = Workspaces(authz_header, token, token_expiration)
+        # self.workspaces = Workspaces(authz_header, token, token_expiration)
+        self.workspaces = Workspaces()
         self.dataflows = Dataflows(authz_header, token, token_expiration)
         self.datasets = Datasets(authz_header, token, token_expiration)
         self.dashboards = Dashboards(authz_header, token, token_expiration)
@@ -137,7 +138,7 @@ class Pipelines:
         logging.info(f"Attempting to create pipeline with name: {pipeline_name}...")
         url = self.client.base_url + "pipelines"
         
-        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.client.urlencoded_headers)
+        response = requests.post(url, data={"displayName": pipeline_name}, headers=self.client.url_encoded_headers)
 
         if response.status_code == self.client.http_created_code:
             logging.info(f"Successfully created pipeline {pipeline_name}.")
@@ -165,7 +166,7 @@ class Pipelines:
                 'workspaceId': self.workspaces._workspace[workspace_name]
             }
 
-            response = requests.post(url, data = request_payload, headers = self.client.urlencoded_headers)
+            response = requests.post(url, data = request_payload, headers = self.client.url_encoded_headers)
 
             if response.status_code == self.client.http_ok_code:
                 logging.info(f"Successfully assigned workspace with ID {self.workspaces._workspace[workspace_name]} to pipeline {pipeline_name}.")

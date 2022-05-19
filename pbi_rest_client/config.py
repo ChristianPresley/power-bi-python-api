@@ -61,3 +61,19 @@ class BaseConfig(object):
     # Power BI Base URL
     PBI_BASE_URL = "https://api.powerbi.com/v1.0/myorg/"
     
+    # REST Client Headers
+    JSON_HEADERS = {
+            "Content-Type": "application/json"
+        }
+    URL_ENCODED_HEADERS = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+    MULTIPART_HEADERS = {
+            "Content-Type": "multipart/form-data"
+        }
+
+    # Power BI Workspace Keys
+    WORKSPACE_KEYS = utils.get_appconfig_keys(key_filter = 'workspace-name*')
+
+    # Azure Storage blob container name
+    BLOB_CONTAINER_NAME = "test-container"

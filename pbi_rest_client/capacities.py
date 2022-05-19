@@ -9,7 +9,8 @@ from .workspaces import Workspaces
 class Capacities:
     def __init__(self, authz_header = None, token = None, token_expiration = None):
         self.client = RestClient(authz_header, token, token_expiration)
-        self.workspaces = Workspaces(authz_header, token, token_expiration)
+        # self.workspaces = Workspaces(authz_header, token, token_expiration)
+        self.workspaces = Workspaces()
         self._workspaces = self.workspaces.get_workspaces()
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/capacities/groups-assign-to-capacity
@@ -37,7 +38,7 @@ class Capacities:
             "capacityId": capacity
         }
 
-        response = requests.post(url, data = payload, headers = self.client.urlencoded_headers)
+        response = requests.post(url, data = payload, headers = self.client.url_encoded_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info(f"Successfully changed capacity of workspace {workspace_name} to {capacity}.")
