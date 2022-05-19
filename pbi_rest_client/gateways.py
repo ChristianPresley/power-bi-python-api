@@ -14,40 +14,40 @@ class Gateways:
     def __init__(self, client):
         self.client = client
         self.helpers = Helpers()
-        self._gateway = {}
-        self._gateway_parameters = {}
-        self._gateway_json = {}
-        self._gateways = None
-        self._datasource = None
-        self._datasources = {}
-        self._datasource_json = {}
-        self._server_name = None
-        self._database_name = None
-        self._connection_details = None
-        self._credential_details = None
-        self._encrypted_credentials = None
+        self.gateway = {}
+        self.gateway_parameters = {}
+        self.gateway_json = {}
+        self.gateways = None
+        self.datasource = None
+        self.datasources = {}
+        self.datasource_json = {}
+        self.server_name = None
+        self.database_name = None
+        self.connection_details = None
+        self.credential_details = None
+        self.encrypted_credentials = None
 
     def payload_string_builder(self, credential_type: str) -> str:
-        self._server_name = os.getenv('AZURE_SERVER_NAME')
-        self._database_name = os.getenv('AZURE_DB_NAME')
+        self.server_name = os.getenv('AZURE_SERVER_NAME')
+        self.database_name = os.getenv('AZURE_DB_NAME')
         datasource_username = os.getenv('DATASOURCE_USERNAME')
         datasource_password = os.getenv('DATASOURCE_PASSWORD')
         credential_array = [datasource_username, datasource_password]
 
         connection_details = Template("{\"server\":\"$server_name\",\"database\":\"$database_name\"}")
-        self._connection_details = connection_details.substitute(server_name=self._server_name, database_name=self._database_name)
+        self.connection_details = connection_details.substitute(server_name=self.server_name, database_name=self.database_name)
         
         credential_details = self.helpers.serialize_credentials(credential_array, credential_type)
 
         public_key = {
-            'exponent': self._gateway['publicKey']['exponent'],
-            'modulus': self._gateway['publicKey']['modulus']
+            'exponent': self.gateway['publicKey']['exponent'],
+            'modulus': self.gateway['publicKey']['modulus']
         }
 
         key_encryptor = AsymmetricKeyEncryptor(public_key)
-        self._encrypted_credentials = key_encryptor.encode_credentials(credential_details)
+        self.encrypted_credentials = key_encryptor.encode_credentials(credential_details)
 
-        return self._connection_details, self._encrypted_credentials
+        return self.connection_details, self.encrypted_credentials
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/gateways/get-gateways
     def get_gateways(self) -> List:
@@ -59,8 +59,8 @@ class Gateways:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved gateways.")
-            self._gateways = response.json()["value"]
-            return self._gateways
+            self.gateways = response.json()["value"]
+            return self.gateways
         else:
             logging.error("Failed to retrieve gateways.")
             self.client.force_raise_http_error(response)
@@ -71,25 +71,25 @@ class Gateways:
         self.get_gateways()
         gateway_found = False
 
-        for item in self._gateways: 
+        for item in self.gateways: 
             if item["name"] == gateway_name: 
                 logging.info("Found gateway with name " + gateway_name)
                 gateway_found = True
-                self._gateway_json = item
+                self.gateway_json = item
                 break
 
         if gateway_found == False:
             logging.warning("Unable to find gateway with name: " + gateway_name)
             return
 
-        url = self.client.base_url + "gateways/" + self._gateway_json['id']
+        url = self.client.base_url + "gateways/" + self.gateway_json['id']
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved gateway with name: " + gateway_name)
-            self._gateway = response.json()
-            return self._gateway
+            self.gateway = response.json()
+            return self.gateway
         else:
             logging.error("Failed to retrieve gateway with name: " + gateway_name)
             self.client.force_raise_http_error(response)
@@ -99,14 +99,14 @@ class Gateways:
         self.client.check_token_expiration()
         self.get_gateway(gateway_name)
 
-        url = self.client.base_url + "gateways/" + self._gateway['id'] + "/datasources"
+        url = self.client.base_url + "gateways/" + self.gateway['id'] + "/datasources"
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved datasources.")
-            self._datasources = response.json()["value"]
-            return self._datasources
+            self.datasources = response.json()["value"]
+            return self.datasources
         else:
             logging.error("Failed to retrieve datasources.")
             self.client.force_raise_http_error(response)
@@ -117,25 +117,25 @@ class Gateways:
         self.get_datasources(gateway_name)
         datasource_found = False
 
-        for item in self._datasources: 
+        for item in self.datasources: 
             if item["datasourceName"] == datasource_name: 
                 logging.info("Found datasource with name: " + datasource_name)
                 datasource_found = True
-                self._datasource_json = item
+                self.datasource_json = item
                 break
         
         if datasource_found == False:
             logging.warning("Unable to find datasource with name: " + datasource_name)
             return
 
-        url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id']
+        url = self.client.base_url + "gateways/" + self.gateway_json['id'] + "/datasources/" + self.datasource_json['id']
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved datasources.")
-            self._datasource = response.json()
-            return self._datasource
+            self.datasource = response.json()
+            return self.datasource
         else:
             logging.error("Failed to retrieve datasources.")
             self.client.force_raise_http_error(response)
@@ -146,25 +146,25 @@ class Gateways:
         self.get_datasources(gateway_name)
         datasource_found = False
 
-        for item in self._datasources: 
+        for item in self.datasources: 
             if item["datasourceName"] == datasource_name: 
                 logging.info("Found datasource with name: " + datasource_name)
                 datasource_found = True
-                self._datasource_json = item
+                self.datasource_json = item
                 break
         
         if datasource_found == False:
             logging.warning("Unable to find datasource with name: " + datasource_name)
             return
 
-        url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id'] + "/status"
+        url = self.client.base_url + "gateways/" + self.gateway_json['id'] + "/datasources/" + self.datasource_json['id'] + "/status"
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved datasources.")
-            self._datasource_status = response.content
-            return self._datasource_status
+            self.datasource_status = response.content
+            return self.datasource_status
         else:
             logging.error("Failed to retrieve datasources.")
             self.client.force_raise_http_error(response)
@@ -175,15 +175,15 @@ class Gateways:
         self.get_gateway(gateway_name)
         self.payload_string_builder('Basic')
 
-        url = self.client.base_url + "gateways/" + self._gateway['id'] + "/datasources"
+        url = self.client.base_url + "gateways/" + self.gateway['id'] + "/datasources"
 
         payload = {
             "dataSourceType": "Sql",
-            "connectionDetails": self._connection_details,
+            "connectionDetails": self.connection_details,
             "datasourceName": datasource_name,
             "credentialDetails": {
                 "credentialType": "Basic",
-                "credentials": self._encrypted_credentials,
+                "credentials": self.encrypted_credentials,
                 "encryptedConnection": "Encrypted",
                 "encryptionAlgorithm": "RSA-OAEP",
                 "privacyLevel": "Organizational",
@@ -196,8 +196,8 @@ class Gateways:
 
         if response.status_code == self.client.http_created_code:
             logging.info("Successfully created datasource with name: " + datasource_name)
-            self._dataset_parameters = response.content
-            return self._dataset_parameters
+            self.dataset_parameters = response.content
+            return self.dataset_parameters
         else:
             logging.error("Failed to create datasource with name: " + datasource_name)
             self.client.force_raise_http_error(response)
@@ -209,12 +209,12 @@ class Gateways:
         self.get_gateway(gateway_name)
         self.payload_string_builder('Basic')
 
-        url = self.client.base_url + "gateways/" + self._gateway_json['id'] + "/datasources/" + self._datasource_json['id']
+        url = self.client.base_url + "gateways/" + self.gateway_json['id'] + "/datasources/" + self.datasource_json['id']
 
         payload = {
             "credentialDetails": {
                 "credentialType": "Basic",
-                "credentials": self._encrypted_credentials,
+                "credentials": self.encrypted_credentials,
                 "encryptedConnection": "Encrypted",
                 "encryptionAlgorithm": "RSA-OAEP",
                 "privacyLevel": "Organizational",
@@ -227,8 +227,8 @@ class Gateways:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully updated datasource with name: " + datasource_name + " and id: ")
-            self._dataset_parameters = response.content
-            return self._dataset_parameters
+            self.dataset_parameters = response.content
+            return self.dataset_parameters
         else:
             logging.error("Failed to retrieve workspaces.")
             self.client.force_raise_http_error(response)

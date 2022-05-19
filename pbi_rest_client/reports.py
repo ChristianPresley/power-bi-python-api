@@ -12,24 +12,23 @@ from .workspaces import Workspaces
 class Reports:
     def __init__(self, client):
         self.client = client
-        # self.workspaces = Workspaces(authz_header, token, token_expiration)
         self.workspaces = Workspaces(client)
-        self._reports = None
-        self._report = None
+        self.reports = None
+        self.report = None
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/get-reports-in-group
     def get_reports(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/reports"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/reports"
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved reports in workspace: " + workspace_name)
-            self._reports = response.json()["value"]
-            return self._reports
+            self.reports = response.json()["value"]
+            return self.reports
         else:
             logging.error("Failed to retrieve reports in workspace: " + workspace_name)
             self.client.force_raise_http_error(response)
@@ -39,12 +38,12 @@ class Reports:
         self.get_reports(workspace_name)
         report_found = False
 
-        for item in self._reports:
+        for item in self.reports:
             if item['name'] == report_name:
                 logging.info("Found report with name: " + report_name + " in workspace with name: " + workspace_name)
                 report_found = True
-                self._report = item
-                return self._report
+                self.report = item
+                return self.report
         
         if report_found == False:
             logging.warn("Unable to find report with name: " + report_name + " in workspace with name: " + workspace_name)
@@ -57,7 +56,7 @@ class Reports:
         out_file = report_name + ".pbix"
 
         blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=f"{container_name}", blob_name=f"{report_name}.pbix")
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/reports/" + self._report['id'] + "/Export"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/reports/" + self.report['id'] + "/Export"
         
         response = requests.get(url, headers = self.client.json_headers, stream = True)
 

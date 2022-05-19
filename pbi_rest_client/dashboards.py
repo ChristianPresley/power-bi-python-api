@@ -10,7 +10,6 @@ from .workspaces import Workspaces
 class Dashboards:
     def __init__(self, client):
         self.client = client
-        # self.workspaces = Workspaces(authz_header, token, token_expiration)
         self.workspaces = Workspaces(client)
         self.dashboards = []
 
@@ -19,7 +18,7 @@ class Dashboards:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dashboards"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dashboards"
         
         response = requests.get(url, headers = self.client.json_headers)
 

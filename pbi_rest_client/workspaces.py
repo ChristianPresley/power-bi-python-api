@@ -7,15 +7,10 @@ from typing import List
 from .rest_client import RestClient
 
 class Workspaces:
-    # def __init__(self, authz_header = None, token = None, token_expiration = None):
-    #     self.client = RestClient(authz_header, token, token_expiration)
-    #     self._workspaces = None
-    #     self._workspace = {}
-
     def __init__(self, client):
         self.client = client
-        self._workspaces = None
-        self._workspace = {}
+        self.workspaces = None
+        self.workspace = {}
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-groups
     def get_workspace(self, workspace_name: str) -> List:
@@ -46,8 +41,8 @@ class Workspaces:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved workspaces.")
-            self._workspaces = response.json()["value"]
-            return self._workspaces
+            self.workspaces = response.json()["value"]
+            return self.workspaces
         else:
             logging.error("Failed to retrieve workspaces.")
             self.client.force_raise_http_error(response)
@@ -57,12 +52,12 @@ class Workspaces:
         self.get_workspaces()
         workspace_missing = True
 
-        for item in self._workspaces:
+        for item in self.workspaces:
             if item['name'] == workspace_name:
                 logging.info(f"Found workspace with name {workspace_name} and workspace id {item['id']}.")
-                self._workspace = {workspace_name: item['id']}
+                self.workspace = {workspace_name: item['id']}
                 workspace_missing = False
-                return self._workspace
+                return self.workspace
         if workspace_missing:
             logging.warning(f"Unable to find workspace with name: '{workspace_name}'")
     

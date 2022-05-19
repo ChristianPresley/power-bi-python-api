@@ -9,9 +9,8 @@ from .workspaces import Workspaces
 class Capacities:
     def __init__(self, client):
         self.client = client
-        # self.workspaces = Workspaces(authz_header, token, token_expiration)
         self.workspaces = Workspaces(client)
-        self._workspaces = self.workspaces.get_workspaces()
+        self.workspaces = self.workspaces.get_workspaces()
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/capacities/groups-assign-to-capacity
     def set_workspace_capacity(self, workspace_name: str, capacity: str) -> None:
@@ -19,8 +18,8 @@ class Capacities:
 
         self.workspaces.get_workspace_id(workspace_name)
 
-        for item in self._workspaces:
-            if item['id'] == self.workspaces._workspace[workspace_name] and 'capacityId' in item:
+        for item in self.workspaces:
+            if item['id'] == self.workspaces.workspace[workspace_name] and 'capacityId' in item:
                 if item['capacityId'] == capacity:
                     logging.info(f"Workspace with id: {item['id']} is already assigned to capacity {capacity}.")
                     return item
@@ -28,11 +27,11 @@ class Capacities:
                     logging.warning(f"Workspace with id: {item['id']} is assigned to the wrong capacity with id {item['capacityId']}. "
                     + f"Proceeding to assign capacity with id {capacity}.")
                     break
-            elif item['id'] == self.workspaces._workspace[workspace_name] and 'capacityId' not in item:
+            elif item['id'] == self.workspaces.workspace[workspace_name] and 'capacityId' not in item:
                 logging.info(f"Workspace with id: {item['id']} is not assigned to capacity. Proceeding to assign capacity with id {capacity}.")
                 break
 
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/AssignToCapacity"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/AssignToCapacity"
 
         payload = {
             "capacityId": capacity

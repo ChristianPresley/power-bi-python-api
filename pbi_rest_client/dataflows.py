@@ -13,11 +13,10 @@ from .workspaces import Workspaces
 class Dataflows:
     def __init__(self, client):
         self.client = client
-        # self.workspaces = Workspaces(authz_header, token, token_expiration)
         self.workspaces = Workspaces(client)
-        self._dataflow = None
-        self._dataflow_json = None
-        self._dataflows = None
+        self.dataflow = None
+        self.dataflow_json = None
+        self.dataflows = None
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflow-storage-accounts/get-dataflow-storage-accounts
     def get_dataflow_storage_accounts(self) -> List:
@@ -29,8 +28,8 @@ class Dataflows:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
-            self._dataflows = response.json()['value']
-            return self._dataflows
+            self.dataflows = response.json()['value']
+            return self.dataflows
         else:
             logging.error("Failed to retrieve pipelines.")
             self.client.force_raise_http_error(response)
@@ -40,14 +39,14 @@ class Dataflows:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows"
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
-            self._dataflows = response.json()['value']
-            return self._dataflows
+            self.dataflows = response.json()['value']
+            return self.dataflows
         else:
             logging.error("Failed to retrieve pipelines.")
             self.client.force_raise_http_error(response)
@@ -58,17 +57,17 @@ class Dataflows:
         self.get_dataflows(workspace_name)
         dataflow_exists = False
 
-        for item in self._dataflows:
+        for item in self.dataflows:
             if item['name'] == dataflow_name:
-                self._dataflow = item
+                self.dataflow = item
                 dataflow_exists = True
                 break
             else:
-                self._dataflow = None
+                self.dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=blob_container_name, blob_name=f"{self._dataflow}")
-            url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=blob_container_name, blob_name=f"{self.dataflow}")
+            url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId']
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
         
@@ -76,12 +75,12 @@ class Dataflows:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
-            self._dataflow_json = json.dumps(response.json(), indent=10)
+            self.dataflow_json = json.dumps(response.json(), indent=10)
             with open("test.json", "w+") as f:
-                f.write(self._dataflow_json)
+                f.write(self.dataflow_json)
             with open("test.json", "rb") as data:
                 blob.upload_blob(data, overwrite = True)
-            return self._dataflow_json
+            return self.dataflow_json
         else:
             logging.error("Failed to retrieve dataflows.")
             self.client.force_raise_http_error(response)
@@ -92,17 +91,17 @@ class Dataflows:
         self.get_dataflows(workspace_name)
         dataflow_exists = False
 
-        for item in self._dataflows:
+        for item in self.dataflows:
             if item['name'] == dataflow_name:
-                self._dataflow = item
+                self.dataflow = item
                 dataflow_exists = True
                 break
             else:
-                self._dataflow = None
+                self.dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self._dataflow}")
-            url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId'] + "/datasources"
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self.dataflow}")
+            url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId'] + "/datasources"
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
         
@@ -110,12 +109,12 @@ class Dataflows:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
-            self._dataflow_json = json.dumps(response.json(), indent=10)
+            self.dataflow_json = json.dumps(response.json(), indent=10)
             with open("test.json", "w+") as f:
-                f.write(self._dataflow_json)
+                f.write(self.dataflow_json)
             with open("test.json", "rb") as data:
                 blob.upload_blob(data, overwrite = True)
-            return self._dataflow_json
+            return self.dataflow_json
         else:
             logging.error("Failed to retrieve dataflows.")
             self.client.force_raise_http_error(response)
@@ -126,17 +125,17 @@ class Dataflows:
         self.get_dataflows(workspace_name)
         dataflow_exists = False
 
-        for item in self._dataflows:
+        for item in self.dataflows:
             if item['name'] == dataflow_name:
-                self._dataflow = item
+                self.dataflow = item
                 dataflow_exists = True
                 break
             else:
-                self._dataflow = None
+                self.dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self._dataflow}")
-            url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self.dataflow}")
+            url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId']
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
         
@@ -158,12 +157,12 @@ class Dataflows:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
-            self._dataflow_json = json.dumps(response.json(), indent=10)
+            self.dataflow_json = json.dumps(response.json(), indent=10)
             with open("test.json", "w+") as f:
-                f.write(self._dataflow_json)
+                f.write(self.dataflow_json)
             with open("test.json", "rb") as data:
                 blob.upload_blob(data, overwrite = True)
-            return self._dataflow_json
+            return self.dataflow_json
         else:
             logging.error("Failed to retrieve dataflows.")
             self.client.force_raise_http_error(response)
@@ -173,19 +172,19 @@ class Dataflows:
         self.client.check_token_expiration()
         self.get_dataflow(workspace_name, dataflow_name)
 
-        if self._dataflow == None:
+        if self.dataflow == None:
             logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot delete the dataflow.")
             return None
-        if self._dataflow['name'] != dataflow_name:
+        if self.dataflow['name'] != dataflow_name:
             logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot delete the dataflow.")
             return None
 
-        url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId']
         
         response = requests.delete(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            self._dataflow = None
+            self.dataflow = None
             return logging.info("Successfully deleted dataflow with name: " + dataflow_name + " in workspace: " + workspace_name)
         else:
             logging.error("Failed to delete dataflow with name: " + dataflow_name + " in workspace: " + workspace_name)

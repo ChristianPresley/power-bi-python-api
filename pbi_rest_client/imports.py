@@ -6,7 +6,6 @@ import os
 import json
 
 from azure.storage.blob import BlobClient
-from .rest_client import RestClient
 from .workspaces import Workspaces
 from .dataflows import Dataflows
 from .reports import Reports
@@ -14,12 +13,11 @@ from .reports import Reports
 class Imports:
     def __init__(self, client):
         self.client = client
-        # self.workspaces = Workspaces(client)
         self.workspaces = Workspaces(client)
         self.dataflows = Dataflows(client)
         self.reports = Reports(client)
-        self._dataflow_name = None
-        self._report_name = None
+        self.dataflow_name = None
+        self.report_name = None
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/imports/post-import
     def import_file_into_workspace(self, workspace_name: str, display_name: str, file_name: str, **kwargs) -> None:
@@ -50,16 +48,16 @@ class Imports:
             display_name = 'model.json'
             with open(file_name, 'r') as f:
                 json_data = json.load(f)
-                self._dataflow_name = json_data['name']
-                self.dataflows.get_dataflow(workspace_name, self._dataflow_name)
+                self.dataflow_name = json_data['name']
+                self.dataflows.get_dataflow(workspace_name, self.dataflow_name)
         else:
-            self._report_name = file_name.rstrip('.pbix')
-            self.reports.get_report(workspace_name, self._report_name)
+            self.report_name = file_name.rstrip('.pbix')
+            self.reports.get_report(workspace_name, self.report_name)
 
         url = (
             f"{self.client.base_url}"
             + "groups/"
-            + f"{self.workspaces._workspace[workspace_name]}"
+            + f"{self.workspaces.workspace[workspace_name]}"
             + "/imports?"
             + f"datasetDisplayName={display_name}"
             + ("&nameConflict=Abort" if dataflow else "&nameConflict=CreateOrOverwrite")
@@ -67,16 +65,16 @@ class Imports:
         )
 
         if dataflow:
-            if self.dataflows._dataflow != None:
-                logging.info("Deleting dataflow: " + self._dataflow_name + " before importing into workspace: " + workspace_name)
-                self.dataflows.delete_dataflow(workspace_name, self._dataflow_name)
+            if self.dataflows.dataflow != None:
+                logging.info("Deleting dataflow: " + self.dataflow_name + " before importing into workspace: " + workspace_name)
+                self.dataflows.delete_dataflow(workspace_name, self.dataflow_name)
             files = {
                 'value': ("Content-Disposition: form-data name=model.json; filename=model.json Content-Type: application/json", open(file_name, 'rb'))
             }
         else:
-            if self.reports._report != None:
+            if self.reports.report != None:
                 logging.info("Backing up PBIX file: " + file_name + " to blob container: " + blob_container_name)
-                self.reports.export_report(workspace_name, self._report_name, blob_container_name)
+                self.reports.export_report(workspace_name, self.report_name, blob_container_name)
             files = {
                 'filename': open(file_name, 'rb')
             }
@@ -90,7 +88,7 @@ class Imports:
         else:
             self.client.force_raise_http_error(response)
 
-        get_import_url = self.client.base_url + f"groups/{self.workspaces._workspace[workspace_name]}/imports/{import_id}"
+        get_import_url = self.client.base_url + f"groups/{self.workspaces.workspace[workspace_name]}/imports/{import_id}"
         
         while True:
             response = requests.get(url = get_import_url, headers = self.client.multipart_headers)

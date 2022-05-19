@@ -17,18 +17,17 @@ utils = Utils()
 class Pipelines:
     def __init__(self, client):
         self.client = client
-        # self.workspaces = Workspaces(client)
         self.workspaces = Workspaces(client)
         self.dataflows = Dataflows(client)
         self.datasets = Datasets(client)
         self.dashboards = Dashboards(client)
         self.reports = Reports(client)
-        self._pipelines = None
-        self._pipeline = {}
+        self.pipelines = None
+        self.pipeline = {}
         self._stage_deploy_is_backwards = False
-        self._pipeline_stage_order = None
-        self._pipeline_stage = None
-        self._pipeline_target_stage = None
+        self.pipeline_stage_order = None
+        self.pipeline_stage = None
+        self.pipeline_target_stage = None
         self._workspace_keys = utils.get_appconfig_keys(key_filter = 'workspace-name*')
         self.pipeline_stages = {'dev': 0, 'test': 1, 'prod': 2}
     
@@ -37,15 +36,15 @@ class Pipelines:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)
 
-        url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "?$expand=stages"
+        url = self.client.base_url + "pipelines/" + self.pipeline[pipeline_name] + "?$expand=stages"
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info(f"Successfully retrieved pipeline {self._pipeline[pipeline_name]}.")
+            logging.info(f"Successfully retrieved pipeline {self.pipeline[pipeline_name]}.")
             return response.json()
         else:
-            logging.error(f"Failed to retrieve pipeline {self._pipeline[pipeline_name]}.")
+            logging.error(f"Failed to retrieve pipeline {self.pipeline[pipeline_name]}.")
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/get-pipelines
@@ -58,8 +57,8 @@ class Pipelines:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved pipelines.")
-            self._pipelines = response.json()["value"]
-            return self._pipelines
+            self.pipelines = response.json()["value"]
+            return self.pipelines
         else:
             logging.error("Failed to retrieve pipelines.")
             self.client.force_raise_http_error(response)
@@ -70,12 +69,12 @@ class Pipelines:
 
         self.get_pipelines()
         
-        for item in self._pipelines:
+        for item in self.pipelines:
             if item['displayName'] == pipeline_name:
                 logging.info(f"Found pipeline with name {pipeline_name} and pipeline id {item['id']}.")
-                self._pipeline = {pipeline_name: item['id']}
+                self.pipeline = {pipeline_name: item['id']}
                 pipeline_missing = False
-                return self._pipeline
+                return self.pipeline
         if pipeline_missing:
             raise RuntimeError(f"Unable to find pipeline with name: '{pipeline_name}'")
 
@@ -84,9 +83,9 @@ class Pipelines:
         
         if stage in self.pipeline_stages:
             logging.info(f"Pipeline stage order is set to {stage}.")
-            self._pipeline_stage_order = self.pipeline_stages[stage]
-            self._pipeline_stage = stage
-            return self._pipeline_stage_order
+            self.pipeline_stage_order = self.pipeline_stages[stage]
+            self.pipeline_stage = stage
+            return self.pipeline_stage_order
         else:
             raise Exception(f"Incorrect stage specified. Available options are: {list(self.pipeline_stages.keys())}")
 
@@ -97,20 +96,20 @@ class Pipelines:
         self.workspaces.get_workspace_id(workspace_name)
         self.validate_pipeline_stage(stage)
 
-        url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "/stages"
+        url = self.client.base_url + "pipelines/" + self.pipeline[pipeline_name] + "/stages"
                 
         response = requests.get(url, headers = self.client.json_headers)
                    
         if response.status_code == self.client.http_ok_code:
             logging.info(f"Successfully retrieved pipeline stages for pipeline {pipeline_name}.")
             for object in response.json()["value"]:
-                if object["order"] == self._pipeline_stage_order:
+                if object["order"] == self.pipeline_stage_order:
                     if "workspaceId" in object:
                         assignment_workspace_id = object["workspaceId"]
-                        if assignment_workspace_id == self.workspaces._workspace[workspace_name]:
+                        if assignment_workspace_id == self.workspaces.workspace[workspace_name]:
                             logging.info(f"Pipeline stage assignment for {pipeline_name} already exists.")
                             return True
-                        elif assignment_workspace_id != self.workspaces._workspace[workspace_name]:
+                        elif assignment_workspace_id != self.workspaces.workspace[workspace_name]:
                             raise Exception(f"Pipeline stage assignment for {pipeline_name} already exists, but with incorrect workspace id {assignment_workspace_id}.")
                     elif "workspaceId" not in object:
                         logging.info(f"Pipeline stage assignment for {pipeline_name} does not exist.")
@@ -125,7 +124,7 @@ class Pipelines:
         self.get_pipelines()
         self.pipeline_exists = False
                
-        for object in self._pipelines:
+        for object in self.pipelines:
             if object['displayName'] == f'{pipeline_name}':
                 logging.info(f"Successfully retrieved pipeline with name {pipeline_name}.")
                 self.pipeline_exists = True
@@ -154,25 +153,25 @@ class Pipelines:
         stage_assigned = self.get_pipeline_stage_assignment(pipeline_name, workspace_name, stage)
         
         if stage_assigned == True:
-            logging.info(f"Pipeline stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' is already assigned to workspace: {self.workspaces._workspace}.")
+            logging.info(f"Pipeline stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' is already assigned to workspace: {self.workspaces.workspace}.")
             return "Pipeline stage already assigned."
         
         if stage_assigned == False:
-            logging.info(f"Pipeline stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' is not assigned to workspace: {self.workspaces._workspace}. Proceeding to assign pipeline stage.")
+            logging.info(f"Pipeline stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' is not assigned to workspace: {self.workspaces.workspace}. Proceeding to assign pipeline stage.")
 
-            url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + f"/stages/{self._pipeline_stage_order}/assignWorkspace"
+            url = self.client.base_url + "pipelines/" + self.pipeline[pipeline_name] + f"/stages/{self.pipeline_stage_order}/assignWorkspace"
 
             request_payload = {
-                'workspaceId': self.workspaces._workspace[workspace_name]
+                'workspaceId': self.workspaces.workspace[workspace_name]
             }
 
             response = requests.post(url, data = request_payload, headers = self.client.url_encoded_headers)
 
             if response.status_code == self.client.http_ok_code:
-                logging.info(f"Successfully assigned workspace with ID {self.workspaces._workspace[workspace_name]} to pipeline {pipeline_name}.")
+                logging.info(f"Successfully assigned workspace with ID {self.workspaces.workspace[workspace_name]} to pipeline {pipeline_name}.")
                 return f"Pipeline stage assigned successfully with URI: {response.request.url}"
             else:
-                logging.error(f"Failed to assign workspace with ID {self.workspaces._workspace[workspace_name]} to pipeline {pipeline_name}.")
+                logging.error(f"Failed to assign workspace with ID {self.workspaces.workspace[workspace_name]} to pipeline {pipeline_name}.")
                 self.client.force_raise_http_error(response)
 
     def pipeline_stage_selector(self, type: str, stage: str):
@@ -182,16 +181,16 @@ class Pipelines:
             raise Exception("Incorrect pipeline stage deployment type specified. Valid options are: 'promote' and 'demote'")
 
         if type == 'promote':
-            if self._pipeline_stage_order < 2:
-                self._pipeline_target_stage = self._pipeline_stage_order + 1
-            elif self._pipeline_stage_order >= 2:
+            if self.pipeline_stage_order < 2:
+                self.pipeline_target_stage = self.pipeline_stage_order + 1
+            elif self.pipeline_stage_order >= 2:
                 raise Exception("Production is the highest stage in Power BI pipeline. You cannot promote Production to another stage.")
         
         if type == 'demote':
-            if self._pipeline_stage_order > 0:
-                self._pipeline_target_stage = self._pipeline_stage_order - 1
+            if self.pipeline_stage_order > 0:
+                self.pipeline_target_stage = self.pipeline_stage_order - 1
                 self._stage_deploy_is_backwards = True
-            elif self._pipeline_stage_order <= 0:
+            elif self.pipeline_stage_order <= 0:
                 raise Exception("Development is the lowest stage in Power BI pipeline. You cannot demote Development to another stage.")
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/deploy-all
@@ -200,10 +199,10 @@ class Pipelines:
         self.get_pipeline_id(pipeline_name)
         self.pipeline_stage_selector(type, stage)
         
-        request_url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "/deployAll"
+        request_url = self.client.base_url + "pipelines/" + self.pipeline[pipeline_name] + "/deployAll"
 
         request_payload = {
-            'sourceStageOrder': self._pipeline_stage_order,
+            'sourceStageOrder': self.pipeline_stage_order,
             'isBackwardDeployment': self._stage_deploy_is_backwards,
             'options': {
                 'allowCreateArtifact': True,
@@ -218,10 +217,10 @@ class Pipelines:
         response = requests.post(request_url, json = request_payload, headers = self.client.json_headers)
         
         if response.status_code == self.client.http_accepted_code:
-            logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
+            logging.info(f"Successfully promoted stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self.pipeline_target_stage]}'.")
             return response
         else:
-            logging.error(f"Failed to promote stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
+            logging.error(f"Failed to promote stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self.pipeline_target_stage]}'.")
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/selective-deploy
@@ -229,7 +228,7 @@ class Pipelines:
         self.client.check_token_expiration()
         self.get_pipeline_id(pipeline_name)
         self.pipeline_stage_selector(type, stage)
-        workspace_name = self._workspace_keys[f'workspace-name-{self._pipeline_stage}']
+        workspace_name = self._workspace_keys[f'workspace-name-{self.pipeline_stage}']
         deploy_dataflows = utils.get_appconfig_feature_flags('dataflows')['enabled']
         deploy_datasets = utils.get_appconfig_feature_flags('datasets')['enabled']
         deploy_reports = utils.get_appconfig_feature_flags('reports')['enabled']
@@ -241,25 +240,25 @@ class Pipelines:
 
         if deploy_dataflows:
             self.dataflows.get_dataflows(workspace_name)
-            for item in self.dataflows._dataflows:
+            for item in self.dataflows.dataflows:
                 dataflow_list.append({"sourceId": f"{item['objectId']}"})
 
         if deploy_datasets or deploy_reports:
             if deploy_reports and not deploy_datasets:
                 self.reports.get_reports(workspace_name)
-                for item in self.reports._reports:
+                for item in self.reports.reports:
                     report_list.append({"sourceId": f"{item['id']}"})
                     dataset_list.append({"sourceId": f"{item['datasetId']}"})
             elif not deploy_reports and deploy_datasets:
                 self.datasets.get_datasets_in_workspace(workspace_name)
-                for item in self.datasets._datasets:
+                for item in self.datasets.datasets:
                     dataset_list.append({"sourceId": f"{item['id']}"})
             else:
                 self.reports.get_reports(workspace_name)
                 self.datasets.get_datasets_in_workspace(workspace_name)
-                for item in self.reports._reports:
+                for item in self.reports.reports:
                     report_list.append({"sourceId": f"{item['id']}"})
-                for item in self.datasets._datasets:
+                for item in self.datasets.datasets:
                     dataset_list.append({"sourceId": f"{item['id']}"})
 
         if deploy_dashboards:
@@ -267,10 +266,10 @@ class Pipelines:
             for item in self.dashboards.dashboards:
                 dashboard_list.append({"sourceId": f"{item['id']}"})
 
-        request_url = self.client.base_url + "pipelines/" + self._pipeline[pipeline_name] + "/deploy"
+        request_url = self.client.base_url + "pipelines/" + self.pipeline[pipeline_name] + "/deploy"
 
         request_payload = {
-            "sourceStageOrder": self._pipeline_stage_order,
+            "sourceStageOrder": self.pipeline_stage_order,
             'isBackwardDeployment': self._stage_deploy_is_backwards,
             "dataflows": dataflow_list,
             "datasets": dataset_list,
@@ -289,8 +288,8 @@ class Pipelines:
         response = requests.post(request_url, json = request_payload, headers = self.client.json_headers)
         
         if response.status_code == self.client.http_accepted_code:
-            logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
+            logging.info(f"Successfully promoted stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self.pipeline_target_stage]}'.")
             return response
         else:
-            logging.error(f"Failed to promote stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
+            logging.error(f"Failed to promote stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self.pipeline_target_stage]}'.")
             self.client.force_raise_http_error(response)
