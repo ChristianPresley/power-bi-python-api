@@ -47,7 +47,7 @@ imports = Imports(client)
 # print (capacities.set_workspace_capacity('Testing Environment [Test]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 # print (capacities.set_workspace_capacity('Testing Environment [Prod]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 
-print (workspaces.get_workspaces())
+# print (workspaces.get_workspaces())
 
 # print (pipelines.create_pipeline('Testing Environment'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 'dev'))
