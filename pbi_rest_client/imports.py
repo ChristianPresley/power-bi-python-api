@@ -12,11 +12,12 @@ from .dataflows import Dataflows
 from .reports import Reports
 
 class Imports:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
-        self.workspaces = Workspaces(authz_header, token, token_expiration)
-        self.dataflows = Dataflows(authz_header, token, token_expiration)
-        self.reports = Reports(authz_header, token, token_expiration)
+    def __init__(self, client):
+        self.client = client
+        # self.workspaces = Workspaces(client)
+        self.workspaces = Workspaces(client)
+        self.dataflows = Dataflows(client)
+        self.reports = Reports(client)
         self._dataflow_name = None
         self._report_name = None
 

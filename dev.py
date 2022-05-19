@@ -13,11 +13,11 @@ from pbi_rest_client.imports import Imports
 logging.basicConfig(level=logging.INFO)
 
 client = RestClient()
-capacities = Capacities(client.authz_header, client.token, client.token_expiration)
-workspaces = Workspaces(client.authz_header, client.token, client.token_expiration)
-pipelines = Pipelines(client.authz_header, client.token, client.token_expiration)
-dataflows = Dataflows(client.authz_header, client.token, client.token_expiration)
-imports = Imports(client.authz_header, client.token, client.token_expiration)
+capacities = Capacities(client)
+workspaces = Workspaces(client)
+pipelines = Pipelines(client)
+dataflows = Dataflows(client)
+imports = Imports(client)
 
 print (workspaces.create_workspace('Testing Environment [Dev]'))
 print (capacities.set_workspace_capacity('Testing Environment [Dev]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))

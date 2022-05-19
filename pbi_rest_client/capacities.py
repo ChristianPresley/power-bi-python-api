@@ -7,10 +7,10 @@ from .rest_client import RestClient
 from .workspaces import Workspaces
 
 class Capacities:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
+    def __init__(self, client):
+        self.client = client
         # self.workspaces = Workspaces(authz_header, token, token_expiration)
-        self.workspaces = Workspaces()
+        self.workspaces = Workspaces(client)
         self._workspaces = self.workspaces.get_workspaces()
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/capacities/groups-assign-to-capacity

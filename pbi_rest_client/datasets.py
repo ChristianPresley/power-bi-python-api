@@ -9,9 +9,10 @@ from .rest_client import RestClient
 from .workspaces import Workspaces
 
 class Datasets:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
-        self.workspaces = Workspaces(authz_header, token, token_expiration)
+    def __init__(self, client):
+        self.client = client
+        # self.workspaces = Workspaces(authz_header, token, token_expiration)
+        self.workspaces = Workspaces(client)
         self._dataset = {}
         self._dataset_parameters = {}
         self._dataset_json = {}

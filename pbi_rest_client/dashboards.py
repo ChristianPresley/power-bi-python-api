@@ -8,9 +8,10 @@ from .rest_client import RestClient
 from .workspaces import Workspaces
 
 class Dashboards:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
-        self.workspaces = Workspaces(authz_header, token, token_expiration)
+    def __init__(self, client):
+        self.client = client
+        # self.workspaces = Workspaces(authz_header, token, token_expiration)
+        self.workspaces = Workspaces(client)
         self.dashboards = []
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dashboards/get-dashboards-in-group

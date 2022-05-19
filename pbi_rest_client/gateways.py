@@ -11,8 +11,8 @@ from .helpers.serializecredentials import Helpers
 from .helpers.asymmetrickeyencryptor import AsymmetricKeyEncryptor
 
 class Gateways:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
+    def __init__(self, client):
+        self.client = client
         self.helpers = Helpers()
         self._gateway = {}
         self._gateway_parameters = {}

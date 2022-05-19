@@ -12,8 +12,8 @@ class Workspaces:
     #     self._workspaces = None
     #     self._workspace = {}
 
-    def __init__(self):
-        self.client = RestClient()
+    def __init__(self, client):
+        self.client = client
         self._workspaces = None
         self._workspace = {}
     

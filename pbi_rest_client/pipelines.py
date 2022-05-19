@@ -15,14 +15,14 @@ from .reports import Reports
 utils = Utils()
 
 class Pipelines:
-    def __init__(self, authz_header = None, token = None, token_expiration = None):
-        self.client = RestClient(authz_header, token, token_expiration)
-        # self.workspaces = Workspaces(authz_header, token, token_expiration)
-        self.workspaces = Workspaces()
-        self.dataflows = Dataflows(authz_header, token, token_expiration)
-        self.datasets = Datasets(authz_header, token, token_expiration)
-        self.dashboards = Dashboards(authz_header, token, token_expiration)
-        self.reports = Reports(authz_header, token, token_expiration)
+    def __init__(self, client):
+        self.client = client
+        # self.workspaces = Workspaces(client)
+        self.workspaces = Workspaces(client)
+        self.dataflows = Dataflows(client)
+        self.datasets = Datasets(client)
+        self.dashboards = Dashboards(client)
+        self.reports = Reports(client)
         self._pipelines = None
         self._pipeline = {}
         self._stage_deploy_is_backwards = False
