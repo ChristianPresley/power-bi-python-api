@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import logging
-import json
 
 from pbi_rest_client.utils.utils import Utils
 from pbi_rest_client.config import BaseConfig
@@ -56,7 +55,7 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 
 # print (workspaces.get_workspaces())
 
-print (pipelines.create_pipeline('Testing Environment'))
+# print (pipelines.create_pipeline('Testing Environment'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 'dev'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Test]', 'test'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Prod]', 'prod'))
