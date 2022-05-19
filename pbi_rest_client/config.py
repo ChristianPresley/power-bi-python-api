@@ -8,22 +8,15 @@ utils = Utils()
 
 class BaseConfig(object):
     # 'ServiceAccount' or 'ServicePrincipal'
-    # AUTHENTICATION_MODE = 'ServiceAccount'
-    # SERVICE_ACCOUNT_USERNAME = os.getenv('AZURE_USERNAME')
-    # SERVICE_ACCOUNT_PASSWORD = os.getenv('AZURE_PASSWORD')
-    AUTHENTICATION_MODE = 'ServicePrincipal'
-    SERVICE_ACCOUNT_USERNAME = None
-    SERVICE_ACCOUNT_PASSWORD = None
-    
-    # auth_mode = utils.auth_mode
-    # if auth_mode:
-    #     AUTHENTICATION_MODE = 'ServiceAccount'
-    #     SERVICE_ACCOUNT_USERNAME = os.getenv('AZURE_USERNAME')
-    #     SERVICE_ACCOUNT_PASSWORD = os.getenv('AZURE_PASSWORD')
-    # elif not auth_mode:
-    #     AUTHENTICATION_MODE = 'ServicePrincipal'
-    #     SERVICE_ACCOUNT_USERNAME = None
-    #     SERVICE_ACCOUNT_PASSWORD = None
+    auth_mode = utils.auth_mode
+    if auth_mode:
+        AUTHENTICATION_MODE = 'ServiceAccount'
+        SERVICE_ACCOUNT_USERNAME = os.getenv('AZURE_USERNAME')
+        SERVICE_ACCOUNT_PASSWORD = os.getenv('AZURE_PASSWORD')
+    elif not auth_mode:
+        AUTHENTICATION_MODE = 'ServicePrincipal'
+        SERVICE_ACCOUNT_USERNAME = None
+        SERVICE_ACCOUNT_PASSWORD = None
     
     # Azure Tenant ID for authentication
     TENANT_ID = os.getenv('AZURE_TENANT_ID')
