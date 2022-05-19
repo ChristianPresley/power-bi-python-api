@@ -17,7 +17,7 @@ from pbi_rest_client.gateways import Gateways
 from pbi_rest_client.reports import Reports
 from pbi_rest_client.imports import Imports
 
-# logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 client = RestClient()
 utils = Utils()
@@ -56,12 +56,12 @@ imports = Imports(client.authz_header, client.token, client.token_expiration)
 
 # print (workspaces.get_workspaces())
 
-# print (pipelines.create_pipeline('Testing Environment'))
+print (pipelines.create_pipeline('Testing Environment'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 'dev'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Test]', 'test'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Prod]', 'prod'))
 # print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'promote', 'Dev'))
-# print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'promote', 'Test'))
+# print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'demote', 'Test'))
 # print (pipelines.pipeline_stage_deploy_selective('Testing Environment', 'promote', 'Dev'))
 
 # print (dataflows.get_dataflow_storage_accounts())

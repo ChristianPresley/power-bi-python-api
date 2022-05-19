@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
 import logging
-import datetime
 import json
 import requests
 import os
 
 from typing import List
-from urllib import parse
-
 from azure.storage.blob import BlobClient
 from .rest_client import RestClient
 from .workspaces import Workspaces
@@ -55,7 +52,7 @@ class Dataflows:
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflows/get-dataflow
-    def get_dataflow(self, workspace_name: str, dataflow_name: str) -> List:
+    def get_dataflow(self, workspace_name: str, dataflow_name: str, blob_container_name: str) -> List:
         self.client.check_token_expiration()
         self.get_dataflows(workspace_name)
         dataflow_exists = False
@@ -69,7 +66,7 @@ class Dataflows:
                 self._dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self._dataflow}")
+            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=blob_container_name, blob_name=f"{self._dataflow}")
             url = self.client.base_url + "groups/" + self.workspaces._workspace[workspace_name] + "/dataflows/" + self._dataflow['objectId']
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')

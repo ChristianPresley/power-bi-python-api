@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-import datetime
 import requests
 
 from typing import List
-from urllib import parse
-
 from .utils.utils import Utils
 from .rest_client import RestClient
 from .workspaces import Workspaces
@@ -223,7 +220,7 @@ class Pipelines:
             logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
             return response
         else:
-            # logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+            logging.error(f"Failed to promote stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/selective-deploy
@@ -273,6 +270,7 @@ class Pipelines:
 
         request_payload = {
             "sourceStageOrder": self._pipeline_stage_order,
+            'isBackwardDeployment': self._stage_deploy_is_backwards,
             "dataflows": dataflow_list,
             "datasets": dataset_list,
             "reports": report_list,
@@ -290,8 +288,8 @@ class Pipelines:
         response = requests.post(request_url, json = request_payload, headers = self.client.json_headers)
         
         if response.status_code == self.client.http_accepted_code:
-            # logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[target_stage]}'.")
+            logging.info(f"Successfully promoted stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
             return response
         else:
-            # logging.error(f"Failed to promote stage {source_stage} in pipeline {pipeline_name} to {target_stage}.")
+            logging.error(f"Failed to promote stage: '{self._pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self._pipeline_target_stage]}'.")
             self.client.force_raise_http_error(response)

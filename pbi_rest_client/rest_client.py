@@ -6,7 +6,6 @@ import requests
 
 from typing import Dict
 from msal import PublicClientApplication, ConfidentialClientApplication
-
 from .config import BaseConfig
 
 config = BaseConfig()

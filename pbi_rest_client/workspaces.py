@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-import datetime
 import requests
 
 from typing import List
-from urllib import parse
-
 from .rest_client import RestClient
 
 class Workspaces:

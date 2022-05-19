@@ -4,9 +4,8 @@ import os
 import logging
 import requests
 
-from azure.storage.blob import BlobClient
 from typing import List
-
+from azure.storage.blob import BlobClient
 from .rest_client import RestClient
 from .workspaces import Workspaces
 

@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 
 import logging
-import datetime
-import json
 import requests
 import os
 
 from typing import List
-from urllib import parse
 from string import Template
-
 from .rest_client import RestClient
 from .helpers.serializecredentials import Helpers
 from .helpers.asymmetrickeyencryptor import AsymmetricKeyEncryptor
