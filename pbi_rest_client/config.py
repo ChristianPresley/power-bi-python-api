@@ -3,7 +3,7 @@
 import os
 
 class BaseConfig(object):
-    # 'ServiceAccount' or 'ServicePrincipal'
+    # 'ServiceAccount' == TRUE or 'ServicePrincipal' == FALSE
     auth_mode = False
 
     if auth_mode:
