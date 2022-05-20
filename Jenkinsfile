@@ -11,17 +11,23 @@ pipeline {
         stage('Dev') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
-                    string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
-                    string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
-                    string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME'),
-                    string(credentialsId: 'AZURE_PASSWORD', variable: 'AZURE_PASSWORD'),
-                    string(credentialsId: 'KEYVAULT_TENANT_ID', variable: 'KEYVAULT_TENANT_ID'),
-                    string(credentialsId: 'KEYVAULT_CLIENT_ID', variable: 'KEYVAULT_CLIENT_ID'),
-                    string(credentialsId: 'KEYVAULT_CLIENT_SECRET', variable: 'KEYVAULT_CLIENT_SECRET'),
-                    string(credentialsId: 'APPCONFIG_NAME', variable: 'APPCONFIG_NAME'),
-                    string(credentialsId: 'KEYVAULT_NAME', variable: 'KEYVAULT_NAME'),
-                    string(credentialsId: 'AZURE_STORAGE_CONNECTION_STRING', variable: 'AZURE_STORAGE_CONNECTION_STRING')
+                    string(credentialsId: 'SERVICE_ACCOUNT_USERNAME', variable: 'SERVICE_ACCOUNT_USERNAME'),
+                    string(credentialsId: 'SERVICE_ACCOUNT_PASSWORD', variable: 'SERVICE_ACCOUNT_PASSWORD'),
+                    string(credentialsId: 'POWER_BI_TENANT_ID', variable: 'POWER_BI_TENANT_ID'),
+                    string(credentialsId: 'POWER_BI_CLIENT_ID', variable: 'POWER_BI_CLIENT_ID'),
+                    string(credentialsId: 'POWER_BI_CLIENT_SECRET', variable: 'POWER_BI_CLIENT_SECRET'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_NAME', variable: 'STORAGE_ACCOUNT_NAME'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_TENANT_ID', variable: 'STORAGE_ACCOUNT_TENANT_ID'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_CLIENT_ID', variable: 'STORAGE_ACCOUNT_CLIENT_ID'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_CLIENT_SECRET', variable: 'STORAGE_ACCOUNT_CLIENT_SECRET'),
+                    string(credentialsId: 'KEY_VAULT_NAME', variable: 'KEY_VAULT_NAME'),
+                    string(credentialsId: 'KEY_VAULT_TENANT_ID', variable: 'KEY_VAULT_TENANT_ID'),
+                    string(credentialsId: 'KEY_VAULT_CLIENT_ID', variable: 'KEY_VAULT_CLIENT_ID'),
+                    string(credentialsId: 'KEY_VAULT_CLIENT_SECRET', variable: 'KEY_VAULT_CLIENT_SECRET'),
+                    string(credentialsId: 'APP_CONFIG_NAME', variable: 'APP_CONFIG_NAME'),
+                    string(credentialsId: 'APP_CONFIG_TENANT_ID', variable: 'APP_CONFIG_TENANT_ID'),
+                    string(credentialsId: 'APP_CONFIG_CLIENT_ID', variable: 'APP_CONFIG_CLIENT_ID'),
+                    string(credentialsId: 'APP_CONFIG_CLIENT_SECRET', variable: 'APP_CONFIG_CLIENT_SECRET')
                 ])
                 {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
@@ -34,17 +40,23 @@ pipeline {
         stage('Test') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
-                    string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
-                    string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
-                    string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME'),
-                    string(credentialsId: 'AZURE_PASSWORD', variable: 'AZURE_PASSWORD'),
-                    string(credentialsId: 'KEYVAULT_TENANT_ID', variable: 'KEYVAULT_TENANT_ID'),
-                    string(credentialsId: 'KEYVAULT_CLIENT_ID', variable: 'KEYVAULT_CLIENT_ID'),
-                    string(credentialsId: 'KEYVAULT_CLIENT_SECRET', variable: 'KEYVAULT_CLIENT_SECRET'),
-                    string(credentialsId: 'APPCONFIG_NAME', variable: 'APPCONFIG_NAME'),
-                    string(credentialsId: 'KEYVAULT_NAME', variable: 'KEYVAULT_NAME'),
-                    string(credentialsId: 'AZURE_STORAGE_CONNECTION_STRING', variable: 'AZURE_STORAGE_CONNECTION_STRING')
+                    string(credentialsId: 'SERVICE_ACCOUNT_USERNAME', variable: 'SERVICE_ACCOUNT_USERNAME'),
+                    string(credentialsId: 'SERVICE_ACCOUNT_PASSWORD', variable: 'SERVICE_ACCOUNT_PASSWORD'),
+                    string(credentialsId: 'POWER_BI_TENANT_ID', variable: 'POWER_BI_TENANT_ID'),
+                    string(credentialsId: 'POWER_BI_CLIENT_ID', variable: 'POWER_BI_CLIENT_ID'),
+                    string(credentialsId: 'POWER_BI_CLIENT_SECRET', variable: 'POWER_BI_CLIENT_SECRET'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_NAME', variable: 'STORAGE_ACCOUNT_NAME'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_TENANT_ID', variable: 'STORAGE_ACCOUNT_TENANT_ID'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_CLIENT_ID', variable: 'STORAGE_ACCOUNT_CLIENT_ID'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_CLIENT_SECRET', variable: 'STORAGE_ACCOUNT_CLIENT_SECRET'),
+                    string(credentialsId: 'KEY_VAULT_NAME', variable: 'KEY_VAULT_NAME'),
+                    string(credentialsId: 'KEY_VAULT_TENANT_ID', variable: 'KEY_VAULT_TENANT_ID'),
+                    string(credentialsId: 'KEY_VAULT_CLIENT_ID', variable: 'KEY_VAULT_CLIENT_ID'),
+                    string(credentialsId: 'KEY_VAULT_CLIENT_SECRET', variable: 'KEY_VAULT_CLIENT_SECRET'),
+                    string(credentialsId: 'APP_CONFIG_NAME', variable: 'APP_CONFIG_NAME'),
+                    string(credentialsId: 'APP_CONFIG_TENANT_ID', variable: 'APP_CONFIG_TENANT_ID'),
+                    string(credentialsId: 'APP_CONFIG_CLIENT_ID', variable: 'APP_CONFIG_CLIENT_ID'),
+                    string(credentialsId: 'APP_CONFIG_CLIENT_SECRET', variable: 'APP_CONFIG_CLIENT_SECRET')
                 ])
                 {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
@@ -57,17 +69,23 @@ pipeline {
         stage('Prod') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'AZURE_TENANT_ID', variable: 'AZURE_TENANT_ID'),
-                    string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
-                    string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
-                    string(credentialsId: 'AZURE_USERNAME', variable: 'AZURE_USERNAME'),
-                    string(credentialsId: 'AZURE_PASSWORD', variable: 'AZURE_PASSWORD'),
-                    string(credentialsId: 'KEYVAULT_TENANT_ID', variable: 'KEYVAULT_TENANT_ID'),
-                    string(credentialsId: 'KEYVAULT_CLIENT_ID', variable: 'KEYVAULT_CLIENT_ID'),
-                    string(credentialsId: 'KEYVAULT_CLIENT_SECRET', variable: 'KEYVAULT_CLIENT_SECRET'),
-                    string(credentialsId: 'APPCONFIG_NAME', variable: 'APPCONFIG_NAME'),
-                    string(credentialsId: 'KEYVAULT_NAME', variable: 'KEYVAULT_NAME'),
-                    string(credentialsId: 'AZURE_STORAGE_CONNECTION_STRING', variable: 'AZURE_STORAGE_CONNECTION_STRING')
+                    string(credentialsId: 'SERVICE_ACCOUNT_USERNAME', variable: 'SERVICE_ACCOUNT_USERNAME'),
+                    string(credentialsId: 'SERVICE_ACCOUNT_PASSWORD', variable: 'SERVICE_ACCOUNT_PASSWORD'),
+                    string(credentialsId: 'POWER_BI_TENANT_ID', variable: 'POWER_BI_TENANT_ID'),
+                    string(credentialsId: 'POWER_BI_CLIENT_ID', variable: 'POWER_BI_CLIENT_ID'),
+                    string(credentialsId: 'POWER_BI_CLIENT_SECRET', variable: 'POWER_BI_CLIENT_SECRET'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_NAME', variable: 'STORAGE_ACCOUNT_NAME'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_TENANT_ID', variable: 'STORAGE_ACCOUNT_TENANT_ID'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_CLIENT_ID', variable: 'STORAGE_ACCOUNT_CLIENT_ID'),
+                    string(credentialsId: 'STORAGE_ACCOUNT_CLIENT_SECRET', variable: 'STORAGE_ACCOUNT_CLIENT_SECRET'),
+                    string(credentialsId: 'KEY_VAULT_NAME', variable: 'KEY_VAULT_NAME'),
+                    string(credentialsId: 'KEY_VAULT_TENANT_ID', variable: 'KEY_VAULT_TENANT_ID'),
+                    string(credentialsId: 'KEY_VAULT_CLIENT_ID', variable: 'KEY_VAULT_CLIENT_ID'),
+                    string(credentialsId: 'KEY_VAULT_CLIENT_SECRET', variable: 'KEY_VAULT_CLIENT_SECRET'),
+                    string(credentialsId: 'APP_CONFIG_NAME', variable: 'APP_CONFIG_NAME'),
+                    string(credentialsId: 'APP_CONFIG_TENANT_ID', variable: 'APP_CONFIG_TENANT_ID'),
+                    string(credentialsId: 'APP_CONFIG_CLIENT_ID', variable: 'APP_CONFIG_CLIENT_ID'),
+                    string(credentialsId: 'APP_CONFIG_CLIENT_SECRET', variable: 'APP_CONFIG_CLIENT_SECRET')
                 ])
                 {
                     withEnv(["HOME=${env.WORKSPACE}"]) {
