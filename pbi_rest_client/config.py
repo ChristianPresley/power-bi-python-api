@@ -19,14 +19,54 @@ class BaseConfig(object):
         SERVICE_ACCOUNT_PASSWORD = None
     
     # Azure Tenant ID for authentication
-    TENANT_ID = os.getenv('AZURE_TENANT_ID')
+    POWER_BI_TENANT_ID = os.getenv('AZURE_TENANT_ID')
 
     # Client ID of the App Registration / Service Principal
-    CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
+    POWER_BI_CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
     
     # Client secret of the App Registration / Service Principal
     # Only required for ServicePrincipal
-    CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
+    POWER_BI_CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
+
+    # Storage Account Configuration
+    STORAGE_ACCOUNT_NAME = os.environ['STORAGE_ACCOUNT_NAME']
+    STORAGE_ACCOUNT_URI = f"https://{STORAGE_ACCOUNT_NAME}.blob.core.windows.net"
+    STORAGE_BLOB_CONTAINER_NAME = "test-container"
+
+    ## Storage Account Tenant ID
+    STORAGE_ACCOUNT_TENANT_ID = os.environ['BLOB_TENANT_ID']
+
+    ## Storage Account Client ID of the App Registration / Service Principal
+    STORAGE_ACCOUNT_CLIENT_ID = os.environ['BLOB_CLIENT_ID']
+
+    ## Storage Account Client Secret of the App Registration / Service Principal
+    STORAGE_ACCOUNT_CLIENT_SECRET = os.environ['BLOB_CLIENT_SECRET']
+
+    # Key Vault Configuration
+    KEY_VAULT_NAME = os.environ['KEYVAULT_NAME']
+    KEY_VAULT_URI = f"https://{KEY_VAULT_NAME}.vault.azure.net"
+
+    ## Key Vault Tenant ID
+    KEY_VAULT_TENANT_ID = os.environ['KEY_VAULT_TENANT_ID']
+
+    ## Key Vault Client ID of the App Registration / Service Principal
+    KEY_VAULT_CLIENT_ID = os.environ['KEY_VAULT_CLIENT_ID']
+
+    ## Key Vault Client Secret of the App Registration / Service Principal
+    KEY_VAULT_CLIENT_SECRET = os.environ['KEY_VAULT_CLIENT_SECRET']
+
+    # App Config Configuration
+    APP_CONFIG_NAME = os.environ['APPCONFIG_NAME']
+    APP_CONFIG_URI = f"https://{APP_CONFIG_NAME}.azconfig.io"
+
+    ## App Config Tenant ID
+    APP_CONFIG_TENANT_ID = os.environ['APP_CONFIG_TENANT_ID']
+
+    ## Key Vault Client ID of the App Registration / Service Principal
+    APP_CONFIG_CLIENT_ID = os.environ['APP_CONFIG_CLIENT_ID']
+
+    ## Key Vault Client Secret of the App Registration / Service Principal
+    APP_CONFIG_CLIENT_SECRET = os.environ['APP_CONFIG_CLIENT_SECRET']
 
     # Scope for the Power BI REST API call
     # 'https://analysis.windows.net/powerbi/api/App.Read.All',
@@ -56,7 +96,7 @@ class BaseConfig(object):
     SCOPE = ['https://analysis.windows.net/powerbi/api/.default']
 
     # Azure AD Login Authority URL
-    AUTHORITY = "https://login.microsoftonline.com/" + TENANT_ID
+    AUTHORITY = "https://login.microsoftonline.com/" + POWER_BI_TENANT_ID
 
     # Power BI Base URL
     PBI_BASE_URL = "https://api.powerbi.com/v1.0/myorg/"
@@ -74,6 +114,3 @@ class BaseConfig(object):
 
     # Power BI Workspace Keys
     WORKSPACE_KEYS = utils.get_appconfig_keys(key_filter = 'workspace-name*')
-
-    # Azure Storage blob container name
-    BLOB_CONTAINER_NAME = "test-container"
