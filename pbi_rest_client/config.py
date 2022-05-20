@@ -4,7 +4,7 @@ import os
 
 class BaseConfig(object):
     # 'ServiceAccount' or 'ServicePrincipal'
-    auth_mode = 'ServicePrincipal'
+    auth_mode = False
 
     if auth_mode:
         AUTHENTICATION_MODE = 'ServiceAccount'
@@ -23,7 +23,7 @@ class BaseConfig(object):
     
     # Client secret of the App Registration / Service Principal
     # Only required for ServicePrincipal
-    POWER_BI_CLIENT_SECRET = os.getenv('POWER_BI_TENANT_ID')
+    POWER_BI_CLIENT_SECRET = os.getenv('POWER_BI_CLIENT_SECRET')
 
     # Storage Account Configuration
     STORAGE_ACCOUNT_NAME = os.environ['STORAGE_ACCOUNT_NAME']
