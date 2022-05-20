@@ -9,21 +9,16 @@ from .config import BaseConfig
 
 config = BaseConfig()
 
-# Variables
-http_ok_code = 200
-http_created_code = 201
-http_accepted_code = 202
-expected_codes = [http_ok_code, http_created_code, http_accepted_code]
-
 class RestClient:
     def __init__(self):
         self.app = None
         self.token = None
+        self.account_username = None
         self.base_url = config.PBI_BASE_URL
-        self.http_ok_code = http_ok_code
-        self.http_created_code = http_created_code
-        self.http_accepted_code = http_accepted_code
-        self.expected_codes = expected_codes
+        self.http_ok_code = 200
+        self.http_created_code = 201
+        self.http_accepted_code = 202
+        self.expected_codes = [self.http_ok_code, self.http_created_code, self.http_accepted_code]
         self.authz_header = {"Authorization": self.token}
         self.token_expiration = datetime.today() - timedelta(days = 1)
         self.check_token_expiration()
@@ -41,7 +36,7 @@ class RestClient:
 
                 # https://msal-python.readthedocs.io/en/latest/#publicclientapplication
                 self.app = PublicClientApplication(
-                    client_id = config.CLIENT_ID,
+                    client_id = config.POWER_BI_CLIENT_ID,
                     authority = config.AUTHORITY
                 )
             elif config.AUTHENTICATION_MODE == 'ServicePrincipal':
@@ -49,8 +44,8 @@ class RestClient:
 
                 # https://msal-python.readthedocs.io/en/latest/#confidentialclientapplication
                 self.app = ConfidentialClientApplication(
-                    client_id = config.CLIENT_ID,
-                    client_credential = config.CLIENT_SECRET,
+                    client_id = config.POWER_BI_CLIENT_ID,
+                    client_credential = config.POWER_BI_CLIENT_SECRET,
                     authority = config.AUTHORITY
                 )
             else:
@@ -66,8 +61,6 @@ class RestClient:
                     password = config.SERVICE_ACCOUNT_PASSWORD,
                     scopes = config.SCOPE
                 )
-
-                self.account_username = acquire_tokens_result['id_token_claims']['preferred_username']
             elif isinstance(self.app, ConfidentialClientApplication):
                 # https://msal-python.readthedocs.io/en/latest/#msal.ConfidentialClientApplication.acquire_token_for_client
                 acquire_tokens_result = self.app.acquire_token_for_client(
@@ -84,11 +77,13 @@ class RestClient:
                 acquire_tokens_result = self.app.acquire_token_silent_with_error(scopes = config.SCOPE, account = None)
 
         if 'error' in acquire_tokens_result:
-            logging.error(f"Failed to retrieve access token for client id {config.CLIENT_ID}.")
+            logging.error(f"Failed to retrieve access token for client id {config.POWER_BI_CLIENT_ID}.")
             logging.error("Error: " + acquire_tokens_result['error'])
             raise Exception("Description: " + acquire_tokens_result['error_description'])
         else:
-            logging.info(f"Successfully retrieved access token for client id {config.CLIENT_ID}.")
+            logging.info(f"Successfully retrieved access token for client id {config.POWER_BI_CLIENT_ID}.")
+            if isinstance(self.app, PublicClientApplication):
+                self.account_username = acquire_tokens_result['id_token_claims']['preferred_username']
             self.token = acquire_tokens_result['access_token']
             self.token_expiration = datetime.utcnow() + timedelta(seconds=acquire_tokens_result["expires_in"])
             self.authz_header = {"Authorization": "Bearer " + self.token}

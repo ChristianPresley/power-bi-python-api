@@ -1,34 +1,31 @@
 #!/usr/bin/env python
 
-import os
 import logging
 
 from azure.identity import ClientSecretCredential
+from azure.storage.blob import BlobClient
 from azure.keyvault.secrets import SecretClient
 from azure.appconfiguration import AzureAppConfigurationClient, FeatureFlagConfigurationSetting
+from ..config import BaseConfig
+
+config = BaseConfig()
 
 class Utils:
-    key_vault_tenant_id = os.environ['KEYVAULT_TENANT_ID']
-    key_vault_client_id = os.environ['KEYVAULT_CLIENT_ID']
-    key_vault_client_secret = os.environ['KEYVAULT_CLIENT_SECRET']
-    app_config_name = os.environ['APPCONFIG_NAME']
-    app_config_uri = f"https://{app_config_name}.azconfig.io"
-    key_vault_name = os.environ['KEYVAULT_NAME']
-    key_vault_uri = f"https://{key_vault_name}.vault.azure.net"
-    credential = ClientSecretCredential(key_vault_tenant_id, key_vault_client_id, key_vault_client_secret)
+    storage_account_credential = ClientSecretCredential(config.STORAGE_ACCOUNT_TENANT_ID, config.STORAGE_ACCOUNT_CLIENT_ID, config.STORAGE_ACCOUNT_CLIENT_SECRET)
+    app_config_credential = ClientSecretCredential(config.APP_CONFIG_TENANT_ID, config.APP_CONFIG_CLIENT_ID, config.APP_CONFIG_CLIENT_SECRET)
+    key_vault_credential = ClientSecretCredential(config.KEY_VAULT_TENANT_ID, config.KEY_VAULT_CLIENT_ID, config.KEY_VAULT_CLIENT_SECRET)
 
     def __init__(self) -> None:
-        self.app_config_client = AzureAppConfigurationClient(Utils.app_config_uri, Utils.credential)
-        self.key_vault_secret_client = SecretClient(vault_url = Utils.key_vault_uri, credential = Utils.credential)
-        self.app_config_name = Utils.app_config_name
-        self.key_vault_name = Utils.key_vault_name
+        self.blob_client = None
+        self.app_config_client = AzureAppConfigurationClient(base_url = config.APP_CONFIG_URI, credential = Utils.app_config_credential)
+        self.key_vault_secret_client = SecretClient(vault_url = config.KEY_VAULT_URI, credential = Utils.key_vault_credential)
         self.secret = None
         self.workspaces = {}
         self.feature_flags = {}
         self.auth_mode = self.get_appconfig_feature_flags('service-account')['enabled']
 
     def get_keyvault_secret(self, secret_name: str)  -> None:
-        logging.info(f"Retrieving your secret from {self.key_vault_name}.")
+        logging.info(f"Retrieving your secret from {config.KEY_VAULT_NAME}.")
 
         retrieved_secret = self.key_vault_secret_client.get_secret(secret_name)
         self.secret = retrieved_secret.value
@@ -56,3 +53,11 @@ class Utils:
         self.feature_flags['kind'] = feature_flag.kind
         
         return self.feature_flags
+    
+    def blob_client(self, blob_name: str):
+        self.blob_client = BlobClient(
+            account_url = config.STORAGE_ACCOUNT_URI,
+            container_name = config.STORAGE_BLOB_CONTAINER_NAME,
+            blob_name = blob_name,
+            credential = Utils.storage_account_credential
+        )

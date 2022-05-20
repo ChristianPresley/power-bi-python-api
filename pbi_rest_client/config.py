@@ -2,31 +2,28 @@
 
 import os
 
-from pbi_rest_client.utils.utils import Utils
-
-utils = Utils()
-
 class BaseConfig(object):
     # 'ServiceAccount' or 'ServicePrincipal'
-    auth_mode = utils.auth_mode
+    auth_mode = 'ServicePrincipal'
+
     if auth_mode:
         AUTHENTICATION_MODE = 'ServiceAccount'
-        SERVICE_ACCOUNT_USERNAME = os.getenv('AZURE_USERNAME')
-        SERVICE_ACCOUNT_PASSWORD = os.getenv('AZURE_PASSWORD')
+        SERVICE_ACCOUNT_USERNAME = os.getenv('SERVICE_ACCOUNT_USERNAME')
+        SERVICE_ACCOUNT_PASSWORD = os.getenv('SERVICE_ACCOUNT_PASSWORD')
     elif not auth_mode:
         AUTHENTICATION_MODE = 'ServicePrincipal'
         SERVICE_ACCOUNT_USERNAME = None
         SERVICE_ACCOUNT_PASSWORD = None
     
     # Azure Tenant ID for authentication
-    POWER_BI_TENANT_ID = os.getenv('AZURE_TENANT_ID')
+    POWER_BI_TENANT_ID = os.getenv('POWER_BI_TENANT_ID')
 
     # Client ID of the App Registration / Service Principal
-    POWER_BI_CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
+    POWER_BI_CLIENT_ID = os.getenv('POWER_BI_CLIENT_ID')
     
     # Client secret of the App Registration / Service Principal
     # Only required for ServicePrincipal
-    POWER_BI_CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
+    POWER_BI_CLIENT_SECRET = os.getenv('POWER_BI_TENANT_ID')
 
     # Storage Account Configuration
     STORAGE_ACCOUNT_NAME = os.environ['STORAGE_ACCOUNT_NAME']
@@ -34,16 +31,16 @@ class BaseConfig(object):
     STORAGE_BLOB_CONTAINER_NAME = "test-container"
 
     ## Storage Account Tenant ID
-    STORAGE_ACCOUNT_TENANT_ID = os.environ['BLOB_TENANT_ID']
+    STORAGE_ACCOUNT_TENANT_ID = os.environ['STORAGE_ACCOUNT_TENANT_ID']
 
     ## Storage Account Client ID of the App Registration / Service Principal
-    STORAGE_ACCOUNT_CLIENT_ID = os.environ['BLOB_CLIENT_ID']
+    STORAGE_ACCOUNT_CLIENT_ID = os.environ['STORAGE_ACCOUNT_CLIENT_ID']
 
     ## Storage Account Client Secret of the App Registration / Service Principal
-    STORAGE_ACCOUNT_CLIENT_SECRET = os.environ['BLOB_CLIENT_SECRET']
+    STORAGE_ACCOUNT_CLIENT_SECRET = os.environ['STORAGE_ACCOUNT_CLIENT_SECRET']
 
     # Key Vault Configuration
-    KEY_VAULT_NAME = os.environ['KEYVAULT_NAME']
+    KEY_VAULT_NAME = os.environ['KEY_VAULT_NAME']
     KEY_VAULT_URI = f"https://{KEY_VAULT_NAME}.vault.azure.net"
 
     ## Key Vault Tenant ID
@@ -56,7 +53,7 @@ class BaseConfig(object):
     KEY_VAULT_CLIENT_SECRET = os.environ['KEY_VAULT_CLIENT_SECRET']
 
     # App Config Configuration
-    APP_CONFIG_NAME = os.environ['APPCONFIG_NAME']
+    APP_CONFIG_NAME = os.environ['APP_CONFIG_NAME']
     APP_CONFIG_URI = f"https://{APP_CONFIG_NAME}.azconfig.io"
 
     ## App Config Tenant ID
@@ -111,6 +108,3 @@ class BaseConfig(object):
     MULTIPART_HEADERS = {
             "Content-Type": "multipart/form-data"
         }
-
-    # Power BI Workspace Keys
-    WORKSPACE_KEYS = utils.get_appconfig_keys(key_filter = 'workspace-name*')
