@@ -16,7 +16,6 @@ class Utils:
     key_vault_credential = ClientSecretCredential(config.KEY_VAULT_TENANT_ID, config.KEY_VAULT_CLIENT_ID, config.KEY_VAULT_CLIENT_SECRET)
 
     def __init__(self) -> None:
-        self.blob_client = None
         self.app_config_client = AzureAppConfigurationClient(base_url = config.APP_CONFIG_URI, credential = Utils.app_config_credential)
         self.key_vault_secret_client = SecretClient(vault_url = config.KEY_VAULT_URI, credential = Utils.key_vault_credential)
         self.secret = None
@@ -55,9 +54,11 @@ class Utils:
         return self.feature_flags
     
     def blob_client(self, blob_name: str):
-        self.blob_client = BlobClient(
+        blob_client = BlobClient(
             account_url = config.STORAGE_ACCOUNT_URI,
             container_name = config.STORAGE_BLOB_CONTAINER_NAME,
             blob_name = blob_name,
             credential = Utils.storage_account_credential
         )
+
+        return blob_client

@@ -5,8 +5,10 @@ import logging
 import requests
 
 from typing import List
-from azure.storage.blob import BlobClient
+from .utils.utils import Utils
 from .workspaces import Workspaces
+
+utils = Utils()
 
 class Reports:
     def __init__(self, client):
@@ -49,12 +51,13 @@ class Reports:
             return None
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/export-report-in-group
-    def export_report(self, workspace_name: str, report_name: str, container_name: str, chunk_size = 128) -> None:
+    def export_report(self, workspace_name: str, report_name: str, chunk_size = 128) -> None:
         self.client.check_token_expiration()
         self.get_report(workspace_name, report_name)
-        out_file = report_name + ".pbix"
 
-        blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=f"{container_name}", blob_name=f"{report_name}.pbix")
+        out_file = report_name + ".pbix"
+        blob = utils.blob_client(out_file)
+
         url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/reports/" + self.report['id'] + "/Export"
         
         response = requests.get(url, headers = self.client.json_headers, stream = True)
