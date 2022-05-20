@@ -6,7 +6,6 @@ import os
 
 from typing import List
 from string import Template
-from .rest_client import RestClient
 from .helpers.serializecredentials import Helpers
 from .helpers.asymmetrickeyencryptor import AsymmetricKeyEncryptor
 

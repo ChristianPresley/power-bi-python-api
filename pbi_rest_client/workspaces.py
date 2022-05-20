@@ -4,7 +4,6 @@ import logging
 import requests
 
 from typing import List
-from .rest_client import RestClient
 
 class Workspaces:
     def __init__(self, client):

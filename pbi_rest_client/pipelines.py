@@ -5,7 +5,6 @@ import requests
 
 from typing import List
 from .utils.utils import Utils
-from .rest_client import RestClient
 from .workspaces import Workspaces
 from .dataflows import Dataflows
 from .datasets import Datasets

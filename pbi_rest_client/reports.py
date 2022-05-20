@@ -6,7 +6,6 @@ import requests
 
 from typing import List
 from azure.storage.blob import BlobClient
-from .rest_client import RestClient
 from .workspaces import Workspaces
 
 class Reports:
