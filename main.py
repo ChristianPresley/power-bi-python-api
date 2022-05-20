@@ -43,6 +43,10 @@ imports = Imports(client)
 # print (capacities.set_workspace_capacity('Testing Environment [Test]', '00000000-0000-0000-0000-000000000000'))
 # print (capacities.set_workspace_capacity('Testing Environment [Prod]', '00000000-0000-0000-0000-000000000000'))
 
+# print (capacities.get_workspace_capacity('Testing Environment [Dev]'))
+# print (capacities.get_workspace_capacity('Testing Environment [Test]'))
+# print (capacities.get_workspace_capacity('Testing Environment [Prod]'))
+
 # print (capacities.set_workspace_capacity('Testing Environment [Dev]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 # print (capacities.set_workspace_capacity('Testing Environment [Test]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 # print (capacities.set_workspace_capacity('Testing Environment [Prod]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))

@@ -9,15 +9,13 @@ class Capacities:
     def __init__(self, client):
         self.client = client
         self.workspaces = Workspaces(client)
-        self.workspaces = self.workspaces.get_workspaces()
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/capacities/groups-assign-to-capacity
     def set_workspace_capacity(self, workspace_name: str, capacity: str) -> None:
         self.client.check_token_expiration()
-
         self.workspaces.get_workspace_id(workspace_name)
 
-        for item in self.workspaces:
+        for item in self.workspaces.workspaces:
             if item['id'] == self.workspaces.workspace[workspace_name] and 'capacityId' in item:
                 if item['capacityId'] == capacity:
                     logging.info(f"Workspace with id: {item['id']} is already assigned to capacity {capacity}.")
@@ -43,4 +41,20 @@ class Capacities:
             return response
         else:
             logging.error(f"Failed to change capacity of workspace {workspace_name} to {capacity}.")
+            self.client.force_raise_http_error(response)
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/capacities/groups-capacity-assignment-status
+    def get_workspace_capacity(self, workspace_name: str) -> None:
+        self.client.check_token_expiration()
+        self.workspaces.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/CapacityAssignmentStatus"
+
+        response = requests.get(url, headers = self.client.url_encoded_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully retrieved capacity of workspace {workspace_name}.")
+            return response.json()['capacityId']
+        else:
+            logging.error(f"Failed to retrieved capacity of workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
