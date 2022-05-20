@@ -28,7 +28,7 @@ class BaseConfig(object):
     # Storage Account Configuration
     STORAGE_ACCOUNT_NAME = os.environ['STORAGE_ACCOUNT_NAME']
     STORAGE_ACCOUNT_URI = f"https://{STORAGE_ACCOUNT_NAME}.blob.core.windows.net"
-    STORAGE_BLOB_CONTAINER_NAME = "test-container"
+    STORAGE_BLOB_CONTAINER_NAME = "powerbi-container"
 
     ## Storage Account Tenant ID
     STORAGE_ACCOUNT_TENANT_ID = os.environ['STORAGE_ACCOUNT_TENANT_ID']
