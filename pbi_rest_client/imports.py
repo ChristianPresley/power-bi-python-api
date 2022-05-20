@@ -5,12 +5,13 @@ import requests
 import os
 import json
 
-from azure.storage.blob import BlobClient
+from .config import BaseConfig
 from .utils.utils import Utils
 from .workspaces import Workspaces
 from .dataflows import Dataflows
 from .reports import Reports
 
+config = BaseConfig()
 utils = Utils()
 
 class Imports:
@@ -76,8 +77,8 @@ class Imports:
             }
         else:
             if self.reports.report != None:
-                logging.info("Backing up PBIX file: " + file_name + " to blob container: " + blob_container_name)
-                self.reports.export_report(workspace_name, self.report_name, blob_container_name)
+                logging.info("Backing up PBIX file: " + file_name + " to blob container: " + config.STORAGE_BLOB_CONTAINER_NAME)
+                self.reports.export_report(workspace_name, self.report_name)
             files = {
                 'filename': open(file_name, 'rb')
             }

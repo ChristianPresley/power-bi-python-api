@@ -81,7 +81,7 @@ imports = Imports(client)
 
 # print (dashboards.get_dashboards('Testing Environment [Dev]'))
 
-# print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'SQLTableDemo.pbix', restore_from_blob = True, blob_container_name = 'test-container', dataflow = False, skip_report = False))
+# print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'SQLTableDemo.pbix', restore_from_blob = False, blob_container_name = None, dataflow = False, skip_report = False))
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', 'SQLDataFlow', 'SQLDataFlow.json', restore_from_blob = False, blob_container_name = None, dataflow = True))
 # print (imports.import_file_into_workspace('Testing Environment [Dev]', False, 'FirstLast.json', 'SharePointListDemo'))
 # print (imports.import_file_from_blob_into_workspace('Testing Environment [Dev]', 'SQLTableDemo', 'test-container', 'SQLTableDemo.pbix', False, False))
