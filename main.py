@@ -52,6 +52,7 @@ imports = Imports(client)
 # print (capacities.set_workspace_capacity('Testing Environment [Prod]', '4846741C-9AC0-456B-A0F2-6BA8C4D1D720'))
 
 # print (workspaces.get_workspaces())
+# print (workspaces.get_workspace_users('Testing Environment [Dev]'))
 
 # print (pipelines.create_pipeline('Testing Environment'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 'dev'))
@@ -60,6 +61,7 @@ imports = Imports(client)
 # print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'promote', 'Dev'))
 # print (pipelines.pipeline_stage_deploy_all('Testing Environment', 'demote', 'Test'))
 # print (pipelines.pipeline_stage_deploy_selective('Testing Environment', 'promote', 'Dev'))
+# print (pipelines.add_user_to_pipeline('Testing Environment', '5e9a1759-7bb3-4710-bfab-c9caefeda476', 'Admin', service_principal = True, group = False, user_account = False))
 
 # print (dataflows.get_dataflow_storage_accounts())
 # print (dataflows.get_dataflows('Testing Environment [Dev]'))

@@ -87,3 +87,20 @@ class Workspaces:
         else:
             logging.error(f"Failed to create workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-group-users
+    def get_workspace_users(self, workspace_name) -> List:
+        self.client.check_token_expiration()
+        self.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspace[workspace_name] + "/users"
+        
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info("Successfully retrieved workspace users.")
+            self.workspaces = response.json()["value"]
+            return self.workspaces
+        else:
+            logging.error("Failed to retrieve workspace users.")
+            self.client.force_raise_http_error(response)

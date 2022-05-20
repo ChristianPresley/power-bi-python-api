@@ -292,3 +292,35 @@ class Pipelines:
         else:
             logging.error(f"Failed to promote stage: '{self.pipeline_stage}' in pipeline: '{pipeline_name}' to stage: '{list(self.pipeline_stages)[self.pipeline_target_stage]}'.")
             self.client.force_raise_http_error(response)
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/update-pipeline-user
+    def add_user_to_pipeline(self, pipeline_name: str, principal_id: str, access_right: str, service_principal: bool, group: bool, user_account: bool) -> bool:
+        self.client.check_token_expiration()
+        self.get_pipeline_id(pipeline_name)
+
+        url = self.client.base_url + "pipelines/" + self.pipeline[pipeline_name] + "/users"
+
+        if service_principal and not group and not user_account:
+            principal_type = "App"
+        elif group and not service_principal and not user_account:
+            principal_type = "User"
+        elif user_account and not service_principal and not group:
+            principal_type = "Group"
+        else:
+            logging.error("Only one principal type can be specified.")
+            return False
+        
+        request_payload = {
+            "identifier": principal_id,
+            "accessRight": access_right,
+            "principalType": principal_type
+        }
+
+        response = requests.post(url, json = request_payload, headers = self.client.json_headers)
+                   
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully assigned user to pipeline: {pipeline_name}.")
+            return True
+        else:
+            logging.error(f"Failed to assign user to pipeline: {pipeline_name}.")
+            self.client.force_raise_http_error(response)
