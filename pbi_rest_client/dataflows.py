@@ -6,8 +6,10 @@ import requests
 import os
 
 from typing import List
-from azure.storage.blob import BlobClient
+from .utils.utils import Utils
 from .workspaces import Workspaces
+
+utils = Utils()
 
 class Dataflows:
     def __init__(self, client):
@@ -51,7 +53,7 @@ class Dataflows:
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflows/get-dataflow
-    def get_dataflow(self, workspace_name: str, dataflow_name: str, blob_container_name: str) -> List:
+    def get_dataflow(self, workspace_name: str, dataflow_name: str) -> List:
         self.client.check_token_expiration()
         self.get_dataflows(workspace_name)
         dataflow_exists = False
@@ -65,7 +67,6 @@ class Dataflows:
                 self.dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=blob_container_name, blob_name=f"{self.dataflow}")
             url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId']
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
@@ -75,10 +76,6 @@ class Dataflows:
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
             self.dataflow_json = json.dumps(response.json(), indent=10)
-            with open("test.json", "w+") as f:
-                f.write(self.dataflow_json)
-            with open("test.json", "rb") as data:
-                blob.upload_blob(data, overwrite = True)
             return self.dataflow_json
         else:
             logging.error("Failed to retrieve dataflows.")
@@ -99,7 +96,6 @@ class Dataflows:
                 self.dataflow = None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self.dataflow}")
             url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId'] + "/datasources"
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
@@ -109,10 +105,6 @@ class Dataflows:
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
             self.dataflow_json = json.dumps(response.json(), indent=10)
-            with open("test.json", "w+") as f:
-                f.write(self.dataflow_json)
-            with open("test.json", "rb") as data:
-                blob.upload_blob(data, overwrite = True)
             return self.dataflow_json
         else:
             logging.error("Failed to retrieve dataflows.")
@@ -121,19 +113,18 @@ class Dataflows:
     # https://docs.microsoft.com/en-us/rest/api/power-bi/dataflows/update-dataflow
     def update_dataflow(self, workspace_name: str, dataflow_name: str) -> List:
         self.client.check_token_expiration()
-        self.get_dataflows(workspace_name)
+        self.get_dataflow(workspace_name, dataflow_name)
         dataflow_exists = False
 
-        for item in self.dataflows:
-            if item['name'] == dataflow_name:
-                self.dataflow = item
-                dataflow_exists = True
-                break
-            else:
-                self.dataflow = None
+        if self.dataflow == None:
+            logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot update the dataflow.")
+            return None
+        if self.dataflow['name'] != dataflow_name:
+            logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot update the dataflow.")
+            return None
                 
         if dataflow_exists:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name="test-container", blob_name=f"{self.dataflow}")
+            self.export_dataflow(workspace_name, dataflow_name)
             url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId']
         else:
             return logging.info('Dataflow with name: ' + dataflow_name + ' does not exist.')
@@ -142,14 +133,7 @@ class Dataflows:
             "name": "SQLDataFlow",
             "description": "New dataflow description",
             "allowNativeQueries": "false",
-            "computeEngineBehavior": "computeOptimized",
-            "datasourceType": "Sql",
-            "connectionDetails": {
-                "server": "df6bce77.database.windows.net",
-                "database": "kpdemo"
-            },
-            "datasourceId": "8e677ee5-5423-4ab4-8c33-3cd4161790af",
-            "gatewayId": "c56e344f-a21f-4913-8e85-92e86a12903f",
+            "computeEngineBehavior": "computeOptimized"
         }
 
         response = requests.patch(url, json = payload, headers = self.client.json_headers)
@@ -157,10 +141,6 @@ class Dataflows:
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved dataflows.")
             self.dataflow_json = json.dumps(response.json(), indent=10)
-            with open("test.json", "w+") as f:
-                f.write(self.dataflow_json)
-            with open("test.json", "rb") as data:
-                blob.upload_blob(data, overwrite = True)
             return self.dataflow_json
         else:
             logging.error("Failed to retrieve dataflows.")
@@ -177,6 +157,8 @@ class Dataflows:
         if self.dataflow['name'] != dataflow_name:
             logging.info('Dataflow with name: ' + dataflow_name + " does not exist. Cannot delete the dataflow.")
             return None
+        
+        self.export_dataflow(workspace_name, dataflow_name)
 
         url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/dataflows/" + self.dataflow['objectId']
         
@@ -188,3 +170,15 @@ class Dataflows:
         else:
             logging.error("Failed to delete dataflow with name: " + dataflow_name + " in workspace: " + workspace_name)
             self.client.force_raise_http_error(response)
+
+    def export_dataflow(self, workspace_name: str, dataflow_name: str):
+        self.client.check_token_expiration()
+        self.get_dataflow(workspace_name, dataflow_name)
+
+        out_file = dataflow_name + ".json"
+        blob = utils.blob_client(out_file)
+
+        with open(out_file, "w+") as f:
+                f.write(self.dataflow_json)
+        with open(out_file, "rb") as data:
+            blob.upload_blob(data, overwrite = True)
