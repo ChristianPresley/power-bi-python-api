@@ -6,9 +6,12 @@ import os
 import json
 
 from azure.storage.blob import BlobClient
+from .utils.utils import Utils
 from .workspaces import Workspaces
 from .dataflows import Dataflows
 from .reports import Reports
+
+utils = Utils()
 
 class Imports:
     def __init__(self, client):
@@ -36,7 +39,7 @@ class Imports:
         self.workspaces.get_workspace_id(workspace_name)
 
         if restore_from_blob:
-            blob = BlobClient.from_connection_string(conn_str=os.getenv('AZURE_STORAGE_CONNECTION_STRING'), container_name=blob_container_name, blob_name=file_name)
+            blob = utils.blob_client(file_name)
             with open(file_name, 'wb') as file:
                 data = blob.download_blob()
                 file.write(data.readall())
