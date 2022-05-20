@@ -5,6 +5,7 @@ import requests
 import os
 import json
 
+from time import sleep
 from .config import BaseConfig
 from .utils.utils import Utils
 from .workspaces import Workspaces
@@ -103,5 +104,9 @@ class Imports:
             if response.json()["importState"] == "Succeeded":
                 logging.info(f"Successfully imported file to workspace {workspace_name}.")
                 return
+            if response.json()["importState"] == "Failed":
+                logging.error("Failed to upload file to workspace.")
+                self.client.force_raise_http_error(response)
             else:
                 logging.info("Import is currently in progress. . . Please wait.")
+                sleep(10)
