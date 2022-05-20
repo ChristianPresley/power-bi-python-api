@@ -53,6 +53,8 @@ imports = Imports(client)
 
 # print (workspaces.get_workspaces())
 # print (workspaces.get_workspace_users('Testing Environment [Dev]'))
+# print (workspaces.add_user_to_workspace('Testing Environment [Dev]', 'eb1f1478-2205-41de-8c0f-90d882cc1790', 'Admin', service_principal = True, group = False, user_account = False))
+# print (workspaces.add_user_to_workspace('Testing Environment [Dev]', '5e9a1759-7bb3-4710-bfab-c9caefeda476', 'Admin', service_principal = True, group = False, user_account = False))
 
 # print (pipelines.create_pipeline('Testing Environment'))
 # print (pipelines.assign_pipeline_workspace('Testing Environment', 'Testing Environment [Dev]', 'dev'))

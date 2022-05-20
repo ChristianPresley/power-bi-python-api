@@ -104,3 +104,35 @@ class Workspaces:
         else:
             logging.error("Failed to retrieve workspace users.")
             self.client.force_raise_http_error(response)
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/update-pipeline-user
+    def add_user_to_workspace(self, workspace_name: str, principal_id: str, access_right: str, service_principal: bool, group: bool, user_account: bool) -> bool:
+        self.client.check_token_expiration()
+        self.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspace[workspace_name] + "/users"
+
+        if service_principal and not group and not user_account:
+            principal_type = "App"
+        elif group and not service_principal and not user_account:
+            principal_type = "User"
+        elif user_account and not service_principal and not group:
+            principal_type = "Group"
+        else:
+            logging.error("Only one principal type can be specified.")
+            return False
+        
+        request_payload = {
+            "identifier": principal_id,
+            "groupUserAccessRight": access_right,
+            "principalType": principal_type
+        }
+
+        response = requests.post(url, json = request_payload, headers = self.client.json_headers)
+                   
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully assigned user to workspace: {workspace_name}.")
+            return True
+        else:
+            logging.error(f"Failed to assign user to workspace: {workspace_name}.")
+            self.client.force_raise_http_error(response)
