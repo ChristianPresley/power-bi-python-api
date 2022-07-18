@@ -17,25 +17,27 @@ class Datasets:
         self.datasets = None
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset
-    def get_dataset(self, workspace_name: str) -> List:
+    #
+    def get_dataset(self, dataset_id: str) -> List:
         self.client.check_token_expiration()
 
-        url = self.client.base_url + "groups?$filter=" + "name eq '" + workspace_name + "'"
+        url = self.client.base_url + "datasets" + dataset_id
         
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
             if response.json()["@odata.count"] <= 0:
-                logging.info("Workspace does not exist or user does not have permissions.")
+                logging.info("Dataset does not exist or user does not have permissions.")
                 return None
             elif response.json()["@odata.count"] == 1:
-                logging.info("Successfully retrieved workspace.")
+                logging.info("Successfully retrieved dataset.")
                 return response.json()
         else:
-            logging.error("Failed to retrieve workspace.")
+            logging.error("Failed to retrieve dataset.")
             self.client.force_raise_http_error(response)
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets
+    # Get all Datasets from My Workspace
     def get_datasets(self) -> List:
         self.client.check_token_expiration()
 
@@ -44,30 +46,31 @@ class Datasets:
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved workspaces.")
+            logging.info("Successfully retrieved datasets from My workspace.")
             self.datasets = response.json()["value"]
             return self.datasets
         else:
-            logging.error("Failed to retrieve workspaces.")
+            logging.error("Failed to retrieve datasets My workspace.")
             self.client.force_raise_http_error(response)
 
-    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets
-    def bind_to_gateway(self, workspace_name) -> List:
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/bind-to-gateway
+    def bind_to_gateway(self, workspace_name: str, dataset_name: str) -> List:
         self.client.check_token_expiration()
         self.workspaces.get_workspace_id(workspace_name)
+        self.get_dataset_in_workspace_id(dataset_name, workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/8e677ee5-5423-4ab4-8c33-3cd4161790af/Default.BindToGateway"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset +"/Default.BindToGateway"
         
-        response = requests.get(url, headers = self.client.json_headers)
+        response = requests.post(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved workspaces.")
-            self.datasets = response.json()["value"]
-            return self.datasets
+            logging.info(F"Successfully binding dataset {dataset_name} in workspace {workspace_name} to gateway.")
+            self.dataset_json = json.dumps(response.json(), indent=10)
+            return self.dataset_json
         else:
-            logging.error("Failed to retrieve workspaces.")
+            logging.error(f"Failed to bind dataset {dataset_name} in workspace {workspace_name} to gateway.")
             self.client.force_raise_http_error(response)
-
+            
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets-in-group
     def get_datasets_in_workspace(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
@@ -78,13 +81,14 @@ class Datasets:
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved workspaces.")
+            logging.info("Successfully retrieved datasets.")
             self.datasets = response.json()["value"]
             return self.datasets
         else:
-            logging.error("Failed to retrieve workspaces.")
+            logging.error("Failed to retrieve datasets.")
             self.client.force_raise_http_error(response)
 
+    # Get Dataset id from dataset_name in My Workspace
     def get_dataset_id(self, dataset_name: str) -> str:
         self.client.check_token_expiration()
         self.get_datasets()
@@ -92,12 +96,12 @@ class Datasets:
 
         for item in self.datasets:
             if item['name'] == dataset_name:
-                logging.info(f"Found workspace with name {dataset_name} and workspace id {item['id']}.")
+                logging.info(f"Found dataset with name {dataset_name} and dataset id {item['id']} in My Workspace.")
                 self.dataset = {dataset_name: item['id']}
                 dataset_missing = False
                 return self.dataset
         if dataset_missing:
-            logging.warning(f"Unable to find workspace with name: '{dataset_name}'")
+            logging.warning(f"Unable to find dataset with name: '{dataset_name} in My Workspace'")
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset-in-group
     def get_dataset_in_workspace_id(self, dataset_name: str, workspace_name: str) -> str:
@@ -107,12 +111,12 @@ class Datasets:
 
         for item in self.datasets:
             if item['name'] == dataset_name:
-                logging.info(f"Found workspace with name {dataset_name} and workspace id {item['id']}.")
+                logging.info(f"Found dataset with name {dataset_name} and dataset id {item['id']} in workspace '{workspace_name}'.")
                 self.dataset = {dataset_name: item['id']}
                 dataset_missing = False
                 return self.dataset
         if dataset_missing:
-            logging.warning(f"Unable to find workspace with name: '{dataset_name}'")
+            logging.warning(f"Unable to find dataset with name: '{dataset_name}' in workspace '{workspace_name}'.")
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-parameters
     def get_dataset_parameters(self, dataset_name: str) -> str:
