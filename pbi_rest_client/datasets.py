@@ -15,10 +15,12 @@ class Datasets:
         self.dataset_parameters = {}
         self.dataset_json = {}
         self.datasets = None
+        self.dataset_datasources = None
+        
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset
-    #
-    def get_dataset(self, dataset_id: str) -> List:
+    # Get specific dataset from My Workspace
+    def get_dataset(self, dataset_id: str) -> str:
         self.client.check_token_expiration()
 
         url = self.client.base_url + "datasets" + dataset_id
@@ -70,7 +72,7 @@ class Datasets:
         else:
             logging.error(f"Failed to bind dataset {dataset_name} in workspace {workspace_name} to gateway.")
             self.client.force_raise_http_error(response)
-            
+
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasets-in-group
     def get_datasets_in_workspace(self, workspace_name: str) -> List:
         self.client.check_token_expiration()
@@ -145,11 +147,11 @@ class Datasets:
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved workspaces.")
+            logging.info(f"Successfully retrieved parameters from dataset {dataset_name} in workspace {workspace_name}.")
             self.dataset_parameters = response.content
             return self.dataset_parameters
         else:
-            logging.error("Failed to retrieve workspaces.")
+            logging.error(f"Failed to retrieve parameters from dataset {dataset_name} in workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-datasources-in-group
@@ -162,43 +164,43 @@ class Datasets:
         response = requests.get(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved workspaces.")
-            self.dataset_parameters = response.content
-            return self.dataset_parameters
+            logging.info(f"Successfully retrieved datasources from dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_datasources = response.json()["value"]
+            return self.dataset_datasources
         else:
-            logging.error("Failed to retrieve workspaces.")
+            logging.error(f"Failed to retrieve datasources from dataset {dataset_name} in workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/take-over-in-group
-    def take_dataset_owner(self, workspace_name: str) -> List:
+    def take_dataset_owner(self, dataset_name: str, workspace_name: str) -> str:
         self.client.check_token_expiration()
-        self.workspaces.get_workspace_id(workspace_name)
+        self.get_dataset_in_workspace_id(dataset_name, workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/c8aaf294-e7d3-4ed2-964a-df19bcec5455/Default.TakeOver"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name] + "/Default.TakeOver"
         
         response = requests.post(url, headers = self.client.json_headers)
 
         if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved dataflows.")
-            self.dataflow_json = json.dumps(response.json(), indent=10)
-            return self.dataflow_json
+            logging.info(f"Successfully took over dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_json = json.dumps(response.json(), indent=10)
+            return self.dataset_json
         else:
-            logging.error("Failed to retrieve pipelines.")
+            logging.error(f"Failed to take over dataset {dataset_name} in workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/refresh-dataset-in-group
-    def refresh_dataset(self, workspace_name: str) -> List:
+    def refresh_dataset(self, dataset_name: str, workspace_name: str) -> str:
         self.client.check_token_expiration()
-        self.workspaces.get_workspace_id(workspace_name)
+        self.get_dataset_in_workspace_id(dataset_name, workspace_name)
 
-        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/c8aaf294-e7d3-4ed2-964a-df19bcec5455/Default.TakeOver"
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name] + "/refreshes"
         
         response = requests.post(url, headers = self.client.json_headers)
 
-        if response.status_code == self.client.http_ok_code:
-            logging.info("Successfully retrieved dataflows.")
-            self.dataflow_json = json.dumps(response.json(), indent=10)
-            return self.dataflow_json
+        if response.status_code == self.client.http_accepted_code:
+            logging.info(f"Successfully start refreshing dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_json = json.dumps(response.json(), indent=10)
+            return self.dataset_json
         else:
-            logging.error("Failed to retrieve pipelines.")
+            logging.error(f"Failed to start refreshing dataset {dataset_name} in workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
