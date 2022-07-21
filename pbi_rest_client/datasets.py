@@ -15,8 +15,11 @@ class Datasets:
         self.dataset_parameters = {}
         self.dataset_json = {}
         self.datasets = None
+        self.dataset_refreshes = None
+        self.dataset_refresh = {}
         self.dataset_datasources = None
-        
+        self.dataset_refresh_details = None
+        self.dataset_refresh_schedule = None
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset
     # Get specific dataset from My Workspace
@@ -103,7 +106,7 @@ class Datasets:
                 dataset_missing = False
                 return self.dataset
         if dataset_missing:
-            logging.warning(f"Unable to find dataset with name: '{dataset_name} in My Workspace'")
+            logging.warning(f"Unable to find dataset with name: {dataset_name} in My Workspace'")
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset-in-group
     def get_dataset_in_workspace_id(self, dataset_name: str, workspace_name: str) -> str:
@@ -118,7 +121,7 @@ class Datasets:
                 dataset_missing = False
                 return self.dataset
         if dataset_missing:
-            logging.warning(f"Unable to find dataset with name: '{dataset_name}' in workspace '{workspace_name}'.")
+            logging.warning(f"Unable to find dataset with name: {dataset_name} in workspace {workspace_name}.")
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-parameters
     def get_dataset_parameters(self, dataset_name: str) -> str:
@@ -203,4 +206,69 @@ class Datasets:
             return self.dataset_json
         else:
             logging.error(f"Failed to start refreshing dataset {dataset_name} in workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-refresh-history-in-group
+    def get_dataset_refresh_history(self, dataset_name: str, workspace_name: str, topN: int = None) -> str:
+        self.client.check_token_expiration()
+        self.get_dataset_in_workspace_id(dataset_name, workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name] + "/refreshes"
+        if topN: url = url + f'?$top={topN}'
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully retrieved refresh history from dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_refreshes = response.json()["value"]
+            return self.dataset_refreshes
+        else:
+            logging.error(f"Failed to retrieve refresh history from dataset {dataset_name} in workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)
+
+    def get_refresh_history_in_dataset_id(self, dataset_name: str, workspace_name: str, refresh_name: str) -> str:
+        self.client.check_token_expiration()
+        self.get_dataset_refresh_history(dataset_name, workspace_name)
+        refresh_missing = True
+
+        for item in self.dataset_refreshes:
+            if item['name'] == refresh_name:
+                logging.info(f"Found refresh {refresh_name} for dataset {dataset_name} in workspace {workspace_name}.")
+                self.dataset_refresh = {refresh_name: item['requestId']}
+                refresh_missing = False
+                return self.dataset_refresh
+        if refresh_missing:
+            logging.warning(f"Unable to find refresh {refresh_name} for dataset with name {dataset_name} in workspace {workspace_name}.")
+    
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-refresh-history-in-group
+    def get_dataset_refresh_details(self, dataset_name: str, workspace_name: str, refresh_name: str) -> str:
+        self.client.check_token_expiration()
+        self.get_refresh_history_in_dataset_id(dataset_name, workspace_name, refresh_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name] + "/refreshes/" + self.dataset_refresh[refresh_name]
+
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code or response.status_code == self.client.http_accepted_code:
+            logging.info(f"Successfully retrieved details for refresh {refresh_name} from dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_refresh_details = response.json()
+            return self.dataset_refresh_details
+        else:
+            logging.error(f"Failed to retrieve details for refresh {refresh_name} from dataset {dataset_name} in workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-refresh-schedule-in-group
+    def get_dataset_refresh_schedule(self, dataset_name: str, workspace_name: str) -> str:
+        self.client.check_token_expiration()
+        self.get_dataset_in_workspace_id(dataset_name, workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name] + "/refreshSchedule"
+
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully retrieved refresh schedule from dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_refresh_schedule = response.json()
+            return self.dataset_refresh_schedule
+        else:
+            logging.error(f"Failed to retrieve refresh schedule from dataset {dataset_name} in workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
