@@ -3,9 +3,11 @@
 import logging
 import requests
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from msal import PublicClientApplication, ConfidentialClientApplication
 from .config import BaseConfig
+from azure.identity import InteractiveBrowserCredential
+
 
 config = BaseConfig()
 
@@ -14,6 +16,7 @@ class RestClient:
         self.app = None
         self.token = None
         self.account_username = None
+        self.log_with_personal_account = config.LOG_WITH_PERSONAL_ACCOUNT #Adding to enable authentication via browser
         self.base_url = config.PBI_BASE_URL
         self.http_ok_code = 200
         self.http_created_code = 201
@@ -31,7 +34,14 @@ class RestClient:
 
     def request_bearer_token(self) -> None:
         if self.app == None:
-            if config.AUTHENTICATION_MODE == 'ServiceAccount':
+            if config.LOG_WITH_PERSONAL_ACCOUNT:
+                logging.info('Authentication via browser using email address.')
+
+                # https://www.datalineo.com/post/power-bi-rest-api-with-python-part-iii-azure-identity
+                self.app = InteractiveBrowserCredential()
+
+
+            elif config.AUTHENTICATION_MODE == 'ServiceAccount':
                 logging.info('Authentication mode set to: ' + config.AUTHENTICATION_MODE)
 
                 # https://msal-python.readthedocs.io/en/latest/#publicclientapplication
@@ -54,7 +64,14 @@ class RestClient:
         if self.token is None:
             logging.info("Access token does not exist. Attempting to generate access token.")
 
-            if isinstance(self.app, PublicClientApplication):
+            if isinstance(self.app, InteractiveBrowserCredential):
+                # https://www.datalineo.com/post/power-bi-rest-api-with-python-part-iii-azure-identity
+                try:
+                    acquire_tokens_result = self.app.get_token(config.SCOPE.pop() )
+                except Exception as e:
+                    acquire_tokens_result = {'error': 'Error on getting token', 'error_description': getattr(e, 'message', repr(e))}
+
+            elif isinstance(self.app, PublicClientApplication):
                 # https://msal-python.readthedocs.io/en/latest/#msal.PublicClientApplication.acquire_token_by_username_password
                 acquire_tokens_result = self.app.acquire_token_by_username_password(
                     username = config.SERVICE_ACCOUNT_USERNAME,
@@ -69,7 +86,12 @@ class RestClient:
         elif self.token_expiration < datetime.utcnow():
             logging.info("Access token has expired. Attempting to renew access token.")
 
-            if isinstance(self.app, PublicClientApplication):
+            if isinstance(self.app, InteractiveBrowserCredential):
+                try:
+                    acquire_tokens_result = self.app.get_token(config.SCOPE.pop() )
+                except Exception as e:
+                    acquire_tokens_result = {'error': 'Error on getting token', 'error_description': getattr(e, 'message', repr(e))}
+            elif isinstance(self.app, PublicClientApplication):
                 # https://msal-python.readthedocs.io/en/latest/#msal.PublicClientApplication.acquire_token_silent_with_error
                 acquire_tokens_result = self.app.acquire_token_silent_with_error(scopes = config.SCOPE, account = self.app.get_accounts(self.account_username)[0])
             elif isinstance(self.app, ConfidentialClientApplication):
@@ -77,17 +99,26 @@ class RestClient:
                 acquire_tokens_result = self.app.acquire_token_silent_with_error(scopes = config.SCOPE, account = None)
 
         if 'error' in acquire_tokens_result:
-            logging.error(f"Failed to retrieve access token for client id {config.POWER_BI_CLIENT_ID}.")
+            if isinstance(self.app, InteractiveBrowserCredential):
+                logging.error("Failed to retrieve access token via browser.")
+            else:
+                logging.error(f"Failed to retrieve access token for client id {config.POWER_BI_CLIENT_ID}.")
             logging.error("Error: " + acquire_tokens_result['error'])
             raise Exception("Description: " + acquire_tokens_result['error_description'])
         else:
-            logging.info(f"Successfully retrieved access token for client id {config.POWER_BI_CLIENT_ID}.")
-            if isinstance(self.app, PublicClientApplication):
-                self.account_username = acquire_tokens_result['id_token_claims']['preferred_username']
-            self.token = acquire_tokens_result['access_token']
-            self.token_expiration = datetime.utcnow() + timedelta(seconds=acquire_tokens_result["expires_in"])
+            if isinstance(self.app, InteractiveBrowserCredential):
+                logging.info(f"Successfully retrieved access token via browser.")
+                self.token = acquire_tokens_result.token
+                utc_offset = datetime.utcnow() - datetime.now()
+                self.token_expiration = datetime.fromtimestamp(acquire_tokens_result.expires_on) + utc_offset
+            else:
+                logging.info(f"Successfully retrieved access token for client id {config.POWER_BI_CLIENT_ID}.")
+                if isinstance(self.app, PublicClientApplication):
+                    self.account_username = acquire_tokens_result['id_token_claims']['preferred_username']
+                self.token = acquire_tokens_result['access_token']
+                self.token_expiration = datetime.utcnow() + timedelta(seconds=acquire_tokens_result["expires_in"])
             self.authz_header = {"Authorization": "Bearer " + self.token}
-    
+
     def check_token_expiration(self):
         if self.token_expiration < datetime.utcnow():
             self.request_bearer_token()
