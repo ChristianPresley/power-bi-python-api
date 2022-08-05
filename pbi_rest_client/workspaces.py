@@ -136,3 +136,19 @@ class Workspaces:
         else:
             logging.error(f"Failed to assign user to workspace: {workspace_name}.")
             self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-groups
+    def get_workspaces_as_admin(self, topN = 100) -> List:
+        self.client.check_token_expiration()
+
+        url = self.client.base_url + "admin/groups" + f'?$top={topN}'
+        
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info("Successfully retrieved workspaces.")
+            self.workspaces = response.json()["value"]
+            return self.workspaces
+        else:
+            logging.error("Failed to retrieve workspaces.")
+            self.client.force_raise_http_error(response)

@@ -7,7 +7,7 @@ class BaseConfig(object):
     auth_mode = False
     
     # Log with email address using internet browser
-    LOG_WITH_PERSONAL_ACCOUNT = False 
+    LOG_WITH_PERSONAL_ACCOUNT = True 
     
     if auth_mode and not LOG_WITH_PERSONAL_ACCOUNT:
         AUTHENTICATION_MODE = 'ServiceAccount'
