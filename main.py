@@ -102,3 +102,10 @@ imports = Imports(client)
 # print (reports.get_reports('Testing Environment [Dev]'))
 # print (reports.get_report('Testing Environment [Dev]', 'SQLTableDemo'))
 # print (reports.export_report('Testing Environment [Dev]', 'SQLTableDemo'))
+
+# groups= workspaces.get_workspaces()
+# dataset_list = []
+# for workspace in groups:
+#     # print(datasets.get_datasets_in_workspace(workspace['name']))
+#     dataset_list.append(datasets.get_datasets_in_workspace(workspace['name']))
+# print(len(dataset_list))

@@ -40,7 +40,6 @@ class RestClient:
                 # https://www.datalineo.com/post/power-bi-rest-api-with-python-part-iii-azure-identity
                 self.app = InteractiveBrowserCredential()
 
-
             elif config.AUTHENTICATION_MODE == 'ServiceAccount':
                 logging.info('Authentication mode set to: ' + config.AUTHENTICATION_MODE)
 
