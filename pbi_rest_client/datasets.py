@@ -26,7 +26,7 @@ class Datasets:
     def get_dataset(self, dataset_id: str) -> str:
         self.client.check_token_expiration()
 
-        url = self.client.base_url + "datasets" + dataset_id
+        url = self.client.base_url + "datasets/" + dataset_id
         
         response = requests.get(url, headers = self.client.json_headers)
 
@@ -124,6 +124,7 @@ class Datasets:
             logging.warning(f"Unable to find dataset with name: {dataset_name} in workspace {workspace_name}.")
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-parameters
+    # Get all Datasets from My Workspace
     def get_dataset_parameters(self, dataset_name: str) -> str:
         self.client.check_token_expiration()
         self.get_dataset_id(dataset_name)
@@ -239,7 +240,7 @@ class Datasets:
         if refresh_missing:
             logging.warning(f"Unable to find refresh {refresh_name} for dataset with name {dataset_name} in workspace {workspace_name}.")
     
-    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-refresh-history-in-group
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-refresh-execution-details-in-group
     def get_dataset_refresh_details(self, dataset_name: str, workspace_name: str, refresh_name: str) -> str:
         self.client.check_token_expiration()
         self.get_refresh_history_in_dataset_id(dataset_name, workspace_name, refresh_name)
