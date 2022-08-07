@@ -26,6 +26,7 @@ class Datasets:
         self.dataset_permission_updated = False
         self.dataset_users = False
         self.user = {}
+        self.dataset_storage_mode_updated = True
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset
     # Get specific dataset from My Workspace
@@ -205,6 +206,16 @@ class Datasets:
 
         url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name] + "/refreshes"
         
+        not_refreshable = False
+        for item in self.datasets:
+            if item['name'] == dataset_name and item['isRefreshable'] == False:
+                not_refreshable = True
+                break        
+        
+        if not_refreshable:
+            logging.warning(f"Failed to refresh dataset {dataset_name} in workspace {workspace_name} because it is not refreshable.")
+            return False
+
         # enable Enhanced refresh (Premium/PPU or Embedded) which can be cancelled
         # https://docs.microsoft.com/en-us/power-bi/connect-data/asynchronous-refresh
         if refresh_type in ['Automatic', 'Calculate', 'ClearValues', 'DataOnly', 'Defragment', 'Full']:
@@ -428,4 +439,48 @@ class Datasets:
             logging.error(f"Failed to update permission to {user_name} for dataset {dataset_name} in workspace {workspace_name}.")
             self.client.force_raise_http_error(response)
 
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset-to-dataflows-links-in-group
+    def get_dataflows_for_datasets_in_workspace(self, workspace_name: str) -> str:
+        self.client.check_token_expiration()
+        self.workspaces.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/upstreamDataflows"
+        
+        response = requests.get(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            if response.json()["@odata.count"] <= 0:
+                logging.info(f"No dataflow linked to dataset in workspace {workspace_name}.")
+                return None
+            elif response.json()["@odata.count"] >= 1:
+                logging.info(f"Successfully retrieved dataflow linked to dataset in workspace {workspace_name}.")
+                return response.json()
+        else:
+            logging.error(f"Failed to retrieve upstream dataflows in workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/update-dataset-in-group
+    def update_dataset_storage_mode(self, dataset_name: str, workspace_name: str, storage_mode: str) ->bool:
+        self.client.check_token_expiration()
+        self.take_dataset_owner(dataset_name, workspace_name)
     
+        url = self.client.base_url + "groups/" + self.workspaces.workspace[workspace_name] + "/datasets/" + self.dataset[dataset_name]
+
+        payload = {
+                "targetStorageMode": storage_mode
+            }
+        
+        # abf = small datasets & PremiumFiles is large dataset
+        if storage_mode not in ['abf', 'PremiumFiles']:
+            logging.error(f'Issue with storage mode {storage_mode}, not in accepeted parameter for dataset {dataset_name} in workspace {workspace_name}.')
+            return False
+
+        response = requests.post(url, json = payload, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully updating storage mode to {storage_mode} for dataset {dataset_name} in workspace {workspace_name}.")
+            self.dataset_storage_mode_updated = True
+            return self.dataset_storage_mode_updated
+        else:
+            logging.error(f"Failed to update storage mode to {storage_mode} for dataset {dataset_name} in workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)

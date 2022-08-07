@@ -3,7 +3,7 @@
 import logging
 import requests
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from msal import PublicClientApplication, ConfidentialClientApplication
 from .config import BaseConfig
 from azure.identity import InteractiveBrowserCredential
