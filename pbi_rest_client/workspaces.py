@@ -10,6 +10,9 @@ class Workspaces:
         self.client = client
         self.workspaces = None
         self.workspace = {}
+        self.workspace_users = None
+        self.user = {}
+        self.user_missing = False
     
     # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/get-groups
     def get_workspace(self, workspace_name: str) -> List:
@@ -99,13 +102,13 @@ class Workspaces:
 
         if response.status_code == self.client.http_ok_code:
             logging.info("Successfully retrieved workspace users.")
-            self.workspaces = response.json()["value"]
-            return self.workspaces
+            self.workspace_users = response.json()["value"]
+            return self.workspace_users
         else:
             logging.error("Failed to retrieve workspace users.")
             self.client.force_raise_http_error(response)
     
-    # https://docs.microsoft.com/en-us/rest/api/power-bi/pipelines/update-pipeline-user
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/add-group-user
     def add_user_to_workspace(self, workspace_name: str, principal_id: str, access_right: str, service_principal: bool, group: bool, user_account: bool) -> bool:
         self.client.check_token_expiration()
         self.get_workspace_id(workspace_name)
@@ -152,3 +155,94 @@ class Workspaces:
         else:
             logging.error("Failed to retrieve workspaces.")
             self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/delete-group
+    def delete_workspace(self, workspace_name: str) -> bool:
+        self.client.check_token_expiration()
+        self.get_workspace_id(workspace_name)
+
+        url = self.client.base_url + "groups/" + self.workspace[workspace_name]
+
+        response = requests.delete(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully deleted workspaces {workspace_name}.")
+            return True
+        else:
+            logging.error(f"Failed to delete workspaces {workspace_name}.")
+            self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/datasets/get-dataset-users-in-group
+    def get_user_in_workspace_id(self, workspace_name: str, user_name: str) -> str:
+        self.client.check_token_expiration()
+        self.get_workspace_users(workspace_name)
+        self.user_missing = True
+        self.user = {}
+
+        for item in self.workspace_users:
+            if item['identifier'] == user_name:
+                logging.info(f"Found user {user_name} in workspace '{workspace_name}'.")
+                self.user = {'Display Name': item['displayName'], 'user' : item['identifier'], 'User Type': item['principalType'], 'Permission': item['groupUserAccessRight'] }
+                self.user_missing = False
+                return self.user
+        if self.user_missing:
+            logging.warning(f"Unable to find user {user_name} in workspace {workspace_name}.")
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/delete-user-in-group
+    def delete_user_from_workspace(self, workspace_name: str, user_name: str) -> bool:
+        self.client.check_token_expiration()
+        self.get_workspace_id(workspace_name)
+        self.get_user_in_workspace_id(workspace_name, user_name)
+
+        if self.user_missing:
+            logging.info(f"Unable to delete user {user_name} from workspace {workspace_name} as not present in user list.")
+            return False
+        
+        url = self.client.base_url + "groups/" + self.workspace[workspace_name] + "/users/" + self.user['user']
+
+        response = requests.delete(url, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully deleted user {user_name} from workspace {workspace_name}.")
+            return True
+        else:
+            logging.error(f"Failed to delete user {user_name} from workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)
+
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/add-group-user
+    # https://docs.microsoft.com/en-us/rest/api/power-bi/groups/update-group-user
+    def update_user_in_workspace(self, workspace_name: str, user_name: str, access_type: str, principal_type: str) -> bool:
+        self.client.check_token_expiration()
+        self.get_workspace_id(workspace_name)
+        self.get_user_in_workspace_id(workspace_name, user_name)
+
+        url = self.client.base_url + "groups/" + self.workspace[workspace_name] + "/users"
+        
+        error_parameter = ''
+        
+        if principal_type not in ['App', 'Group', 'None', 'User']:
+            error_parameter = 'principal type'
+        elif access_type not in ['Admin', 'Contributor', 'Member', 'None', 'Viewer']:
+            error_parameter = 'access type'
+        if error_parameter != '':
+            logging.error(f'Issue with updating permission for {user_name} due to incorrect {error_parameter} for workspace {workspace_name}.')
+            return False
+
+        payload = {
+            "identifier": user_name,
+            "groupUserAccessRight": access_type,
+            "principalType": principal_type
+        }
+
+        if self.user_missing:
+            response = requests.post(url, json = payload, headers = self.client.json_headers)
+        else:
+            response = requests.put(url, json = payload, headers = self.client.json_headers)
+
+        if response.status_code == self.client.http_ok_code:
+            logging.info(f"Successfully updated user acces for user {user_name} to workspace {workspace_name}.")
+            return True
+        else:
+            logging.error(f"Failed to aupdate user acces for user {user_name} to workspace {workspace_name}.")
+            self.client.force_raise_http_error(response)
+    
