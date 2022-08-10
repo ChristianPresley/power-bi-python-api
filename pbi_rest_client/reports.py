@@ -230,8 +230,7 @@ class Reports:
             self.client.force_raise_http_error(response)
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/update-datasources-in-group
-    def update_datasources_for_paginated_report(self, workspace_name: str, report_name: str, datasources: List) -> bool:
-        # datasources is a list of list: [['Datasource1', 'Server1', 'Database1'],['Datasource2', 'Server2', 'Database2']]
+    def update_datasources_for_paginated_report(self, workspace_name: str, report_name: str, datasource_names: List, server_names: List, database_names: List) -> bool:
         self.client.check_token_expiration()
         self.get_report(workspace_name, report_name)
 
@@ -246,11 +245,14 @@ class Reports:
         if not self.transfer_ownership:
             logging.warning(f"Failed to transfer report ownership for report {report_name}, datasources not updated.")
             return False
+        if len(datasource_names) != len(server_names) and len(datasource_names) != len(database_names):
+            logging.warning(f"Datasource_names, server_names and database_names list do not have the same number of items! {report_name} datasources' report were not updated.")
+            return False
 
-        datasource_count = len(datasources)
+        datasource_count = len(datasource_names)
         datasource_string = ''
         for i in range(datasource_count):
-            datasource_string = datasource_string + '{"datasourceName": " ' + datasources[i][0] + '", "connectionDetails": { "server": " ' + datasources[i][1] + '", "database":" ' + datasources[i][2] + '" } }'
+            datasource_string = datasource_string + '{"datasourceName": " ' + datasource_names[i] + '", "connectionDetails": { "server": " ' + server_names[i] + '", "database":" ' + database_names[i] + '" } }'
             if i < datasource_count-1:
                 datasource_string = datasource_string + ', '
         
@@ -267,7 +269,6 @@ class Reports:
 
     # https://docs.microsoft.com/en-us/rest/api/power-bi/reports/take-over-in-group
     def become_owner_of_paginated_report_datasources(self, workspace_name: str, report_name: str) -> bool:
-        # datasources is a list of list: [['Datasource1', 'Server1', 'Database1'],['Datasource2', 'Server2', 'Database2']]
         self.client.check_token_expiration()
         self.get_report(workspace_name, report_name)
         self.transfer_ownership = False
